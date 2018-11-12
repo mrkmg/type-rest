@@ -26,31 +26,31 @@ const logoutHook: IHook = {
     route: "/authentication/",
 };
 
-export const Api = typeRest<ApiDef>("https://some-url/api", {
+export const Api = typeRest<ApiRoute>("https://some-url/api", {
     hooks: [loginHook, logoutHook],
     params: {
         mode: "cors",
     }
 });
 
-export interface ApiDef {
-    authentication: AuthenticationDef;
-    todos: TodosDef;
+export interface ApiRoute {
+    authentication: AuthenticationRoute;
+    todos: TodosRoute;
 }
 
-export interface AuthenticationDef {
+export interface AuthenticationRoute {
     Get: WithNone<{authenticated: boolean}>;
     Post: WithBody<{username: string, password: string}, {result: boolean, token?: string, error?: string}>;
     Delete: WithNone<void>;
 }
 
-export interface TodosDef {
+export interface TodosRoute {
     Get: WithQuery<{page: number, limit?: number}, Todo[]>;
     Post: WithBody<Pick<Todo, Exclude<keyof Todo, "id" | "completed">>, Todo>;
-    [todoId: number]: TodoDef;
+    [todoId: number]: TodoRoute;
 }
 
-export interface TodoDef {
+export interface TodoRoute {
     Get: WithNone<Todo>;
     Patch: WithBody<Partial<Todo>, Todo>;
     Delete: WithNone<void>;

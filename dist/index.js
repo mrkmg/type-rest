@@ -1,7 +1,27 @@
 "use strict";
-function __export(m) {
-    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
-}
 Object.defineProperty(exports, "__esModule", { value: true });
-__export(require("./dynamic-rest"));
-//# sourceMappingURL=index.js.map
+var make_endpoint_1 = require("./make-endpoint");
+function typeRest(path, options) {
+    if (typeof options === "undefined") {
+        options = {};
+    }
+    if (typeof options.params === "undefined") {
+        options.params = {};
+    }
+    if (typeof options.hooks === "undefined") {
+        options.hooks = [];
+    }
+    options.params = Object.assign({
+        cache: "default",
+        credentials: "same-origin",
+        headers: {},
+        mode: "same-origin",
+        redirect: "follow",
+        referrer: "client",
+    }, options.params);
+    if (path[path.length - 1] !== "/") {
+        path = path + "/";
+    }
+    return make_endpoint_1.makeProxy(path, "", options);
+}
+exports.typeRest = typeRest;

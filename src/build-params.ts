@@ -1,39 +1,43 @@
-export function buildParams(a) {
-    const s = [];
-    const add = function (k, v) {
-        v = typeof v === 'function' ? v() : v;
-        v = v === null ? '' : v === undefined ? '' : v;
-        s[s.length] = encodeURIComponent(k) + '=' + encodeURIComponent(v);
-    };
-    const bp = function (prefix, obj) {
-        let i, len, key;
+export function buildParams(obj: any) {
+    const queryStringOptions: string[] = [];
 
-        if (prefix) {
-            if (Array.isArray(obj)) {
-                for (i = 0, len = obj.length; i < len; i++) {
-                    bp(
-                        prefix + '[' + (typeof obj[i] === 'object' && obj[i] ? i : '') + ']',
-                        obj[i]
-                    );
-                }
-            } else if (String(obj) === '[object Object]') {
-                for (key in obj) {
-                    bp(prefix + '[' + key + ']', obj[key]);
-                }
-            } else {
-                add(prefix, obj);
-            }
-        } else if (Array.isArray(obj)) {
-            for (i = 0, len = obj.length; i < len; i++) {
-                add(obj[i].name, obj[i].value);
-            }
-        } else {
-            for (key in obj) {
-                bp(key, obj[key]);
-            }
+    const solve = (v: any) => {
+        while (typeof v === "function") {
+            v = v();
         }
-        return s;
+        if (v === null || v === undefined) {
+            v = "";
+        }
+        return encodeURIComponent(v);
     };
 
-    return bp('', a).join('&');
+    const add = (k: string, v: any) => {
+        v = solve(v);
+
+        if (v === "") {
+            queryStringOptions.push(k);
+        } else {
+            queryStringOptions.push(k + "=" + v);
+        }
+    };
+
+    const makeParams = (prefix: string, innerObj: any) => {
+        if (typeof innerObj === "object") {
+            for (const key in innerObj) {
+                if (innerObj.hasOwnProperty(key)) {
+                    const encodedKey = solve(key);
+
+                    makeParams(prefix === "" ? encodedKey : `${prefix}[${encodedKey}]`, innerObj[key]);
+                }
+            }
+        } else if (prefix !== "") {
+            add(prefix, innerObj);
+        } else {
+            add(solve(innerObj), null);
+        }
+    };
+
+    makeParams("", obj);
+
+    return queryStringOptions.join("&");
 }

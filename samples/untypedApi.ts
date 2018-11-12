@@ -1,7 +1,7 @@
-import {dynamicRest} from "../src";
+import {typeRest} from "type-rest";
 
 async function main() {
-    const api = dynamicRest("https://jsonplaceholder.typicode.com");
+    const api = typeRest("https://jsonplaceholder.typicode.com");
 
     try {
         const todo = await api.todos[1].Get();

@@ -1,16 +1,8 @@
-import {DynamicRest, dynamicRest} from "../src";
-import {Api} from "./api";
+import {api} from "./api";
 import {ICustomerPostBody} from "./api/routes/customer";
 import {IOrderPostBody} from "./api/routes/order";
 
-
-async function ensureLoggedIn(api: DynamicRest<Api>) {
-
-}
-
-
 async function main() {
-    const api = dynamicRest<Api>("https://localhost/api");
 
     // Check if logged in
     const loggedIn = await api.auth.Get();
@@ -63,6 +55,7 @@ async function main() {
         totalAmount: 100,
         customerId: customer.id,
     };
+
     await api.order.Post(orderData);
 
     // Get an order (without customer)

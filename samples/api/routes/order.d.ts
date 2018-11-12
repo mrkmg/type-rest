@@ -1,10 +1,10 @@
-import {WithBody, WithNone, WithQuery} from "../../../src/index";
 import {IOrder} from "../../entities/order";
 import {IListParams} from "../generics";
+import {WithBody, WithNone, WithQuery, WithBodyAndQuery} from "../../../dist";
 
 export interface IOrdersRoute {
     Get: WithQuery<IOrderGetParams, IOrderWithoutCustomer[]>;
-    Post: WithBody<IOrderPostBody, IOrderWithoutCustomer>;
+    Post: WithBody<IOrderPostBody, IOrderWithoutCustomer> & WithBodyAndQuery<IOrderPostBody, IOrderGetOneParams, IOrder>;
     [customerId: number]: IOrderRoute;
 }
 

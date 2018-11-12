@@ -11,8 +11,8 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "declaration": false,
-    "sourceMap": true
+    "declaration": true,
+    "sourceMap": false
   },
   "exclude": [
     "node_modules"

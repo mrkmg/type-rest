@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var make_endpoint_1 = require("./make-endpoint");
+var make_proxy_1 = require("./make-proxy");
 function typeRest(path, options) {
     if (typeof options === "undefined") {
         options = {};
@@ -22,6 +22,6 @@ function typeRest(path, options) {
     if (path[path.length - 1] !== "/") {
         path = path + "/";
     }
-    return make_endpoint_1.makeProxy(path, "", options);
+    return make_proxy_1.makeProxy(path, "", options);
 }
 exports.typeRest = typeRest;

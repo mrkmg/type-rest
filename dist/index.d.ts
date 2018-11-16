@@ -1,3 +1,5 @@
+import { IHook, IHookEvent } from "./hooks";
+export { IHook, IHookEvent };
 export declare type Index<T> = T & {
     readonly _options: ITypeRestOptions<T>;
 };
@@ -24,20 +26,6 @@ export declare type PostRoute = WithBody<any, any> & WithBodyAndQuery<any, any, 
 export declare type PatchRoute = WithBody<any, any> & WithBodyAndQuery<any, any, any>;
 export declare type PutRoute = WithBody<any, any> & WithBodyAndQuery<any, any, any>;
 export declare type AllowedInitKeys = "mode" | "cache" | "credentials" | "headers" | "redirect" | "referrer";
-export interface IHook<T = any> {
-    path?: string;
-    method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
-    hook: (event: IHookEvent<T>) => Promise<void> | void;
-}
-export interface IHookEvent<T> {
-    rootPath: string;
-    fullPath: string;
-    path: string;
-    requestQuery: any;
-    requestBody: any;
-    response: any;
-    instance: Index<T>;
-}
 export interface ITypeRestOptions<T> {
     hooks: Array<IHook<T>>;
     params: Pick<RequestInit, AllowedInitKeys>;

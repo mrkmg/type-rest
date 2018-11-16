@@ -101,7 +101,7 @@ describe("Hooks", () => {
 
         await api.test.Get();
 
-        expect(api._options.params.headers.auth).toEqual("responseValue1");
+        expect(api._options.params.headers["auth"]).toEqual("responseValue1");
     });
 
     it("Multiple", async () => {

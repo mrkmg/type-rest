@@ -255,9 +255,74 @@ requests to your api!
 ## Hooks
 
 Built into type rest is the ability to hook into requests to modify
-the api instance, or trigger side effects. The primary purpose of the
-hooks is to handle authentication tokens and headers. Many API's require
-a token to be sent with every request. This token can either be given
-to the developer, or returned as part of an authentication request.
+the api instance or trigger side effects. The primary purpose of the
+hooks is to handle authentication tokens, headers, etc. Many API's 
+require a token to be sent with every request. This token can either 
+be given to the developer, or returned as part of an authentication request.
 
-MORE TO COME ON HOOKS
+In the above example, we can see that the authentication result returns
+a token. If we were required to pass this token in all future requests,
+the user of the API would need to modify the api params.
+
+```typescript
+const result = AwesomeApi.authentication.Post({username: "user", password: "pass"});
+
+if (result.valid) {
+    AwesomeApi._options.params.headers["auth-token"] = result.token;
+}
+```
+
+If you as the API developer wanted to automate this for the
+consumers of your API, you can use the hooks system.
+
+```typescript
+import {AwesomeApiRoutes} from "./routes";
+import {typeRest, IHook} from "type-rest";
+
+const loginHook: IHook = {
+     hook: (ev) => {
+         if (!ev.response.result) return Promise.reject(ev.response.error);
+         ev.instance._options.params.headers['auth-token'] = ev.response.token; 
+     },
+     method: "POST",
+     route: "/authentication/",
+ };
+
+const logoutHook: IHook = {
+    hook: (ev) => {
+        delete ev.instance._options.params.headers['auth-token'];
+    },
+    method: "DELETE",
+    route: "/authentication/",
+};
+
+export const AwesomeApi = typeRest<AwesomeApiRoutes>("https://awesome-app/api/v1/", {hooks: [loginHook, logoutHook]});
+```
+
+In the above example, you can see two separate hooks, a login hook and
+a logout hook. The login hook will only be executed on a "POST" call to
+the /authentication/ route. the logout hook will only be executed on a
+"DELETE" call the /authentication and will remove the token.
+
+## License
+
+Copyright <YEAR> <COPYRIGHT HOLDER>
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files 
+(the "Software"), to deal in the Software without restriction, 
+including without limitation the rights to use, copy, modify, merge, 
+publish, distribute, sublicense, and/or sell copies of the Software, and 
+to permit persons to whom the Software is furnished to do so, subject 
+to the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

@@ -1,28 +1,56 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var mergeOptions = require("merge-options");
 var make_endpoint_1 = require("./make-endpoint");
-function makeProxy(initialPath, path, options) {
-    return new Proxy({}, {
-        get: function (target, name) {
-            switch (name) {
-                case "_options":
-                    return options;
-                case "Get":
-                    return make_endpoint_1.makeEndpoint(initialPath, "GET", path, options);
-                case "Post":
-                    return make_endpoint_1.makeEndpoint(initialPath, "POST", path, options);
-                case "Patch":
-                    return make_endpoint_1.makeEndpoint(initialPath, "PATCH", path, options);
-                case "Delete":
-                    return make_endpoint_1.makeEndpoint(initialPath, "DELETE", path, options);
-                case "Put":
-                    return make_endpoint_1.makeEndpoint(initialPath, "PUT", path, options);
-                default:
-                    var formattedName = formatPath(name);
-                    return makeProxy(initialPath, "" + path + formattedName + "/", options);
+// Todo: Type target
+function getHandler(target, name, current) {
+    switch (name) {
+        case "_root":
+            if (current._parent) {
+                return current._parent;
             }
-        },
-    });
+            return current;
+        case "_uri":
+            if (!current._parent) {
+                return current._path;
+            }
+            return "" + current._parent._uri + formatPath(current._path) + "/";
+        case "_fullPath":
+            if (!current._parent) {
+                return "/";
+            }
+            return "" + current._parent._fullPath + formatPath(current._path) + "/";
+        case "_fullOptions":
+            if (!current._parent) {
+                return mergeOptions.call({ concatArrays: true }, {}, current._options);
+            }
+            return mergeOptions.call({ concatArrays: true }, current._parent._fullOptions, current._options);
+        case "Get":
+        case "Post":
+        case "Patch":
+        case "Delete":
+        case "Put":
+            var endPointParams = {
+                current: current,
+                type: name.toUpperCase(),
+            };
+            return make_endpoint_1.makeEndpoint(endPointParams);
+        default:
+            if (target.hasOwnProperty(name)) {
+                return target[name];
+            }
+            var proxy = makeProxy(current, name, { hooks: [], params: { headers: {} } });
+            target[name] = proxy;
+            return proxy;
+    }
+}
+var proxyHandler = { get: getHandler };
+function makeProxy(parent, path, options) {
+    return new Proxy({
+        _options: options,
+        _parent: parent,
+        _path: path,
+    }, proxyHandler);
 }
 exports.makeProxy = makeProxy;
 function formatPath(path) {

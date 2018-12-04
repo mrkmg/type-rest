@@ -1,6 +1,6 @@
+import {WithBody, WithBodyAndQuery, WithNone, WithQuery} from "../../../dist";
 import {IOrder} from "../../entities/order";
 import {IListParams} from "../generics";
-import {WithBody, WithNone, WithQuery, WithBodyAndQuery} from "../../../dist";
 
 export interface IOrdersRoute {
     Get: WithQuery<IOrderGetParams, IOrderWithoutCustomer[]>;
@@ -20,5 +20,5 @@ export type IOrderGetParams = IListParams<IOrder>;
 export type IOrderPostBody = Pick<IOrderWithoutCustomer, Exclude<keyof IOrderWithoutCustomer, "id">>;
 export type IOrderPatchBody = Partial<IOrderWithoutCustomer>;
 export interface IOrderGetOneParams {
-    withCustomer: true
+    withCustomer: true;
 }

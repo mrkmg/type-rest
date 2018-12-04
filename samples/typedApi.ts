@@ -3,7 +3,6 @@ import {ICustomerPostBody} from "./api/routes/customer";
 import {IOrderPostBody} from "./api/routes/order";
 
 async function main() {
-
     // Check if logged in
     const loggedIn = await api.auth.Get();
 
@@ -12,7 +11,7 @@ async function main() {
         const authResult = await api.auth.Post({username: "test", password: "test"});
 
         if (authResult.valid) {
-            api._initParams.headers["token"] = authResult.jwt;
+            api.headers.token = authResult.jwt;
         } else {
             alert("Failed to login!");
         }
@@ -24,10 +23,10 @@ async function main() {
 
     // Create Customer
     const customerData: ICustomerPostBody = {
+        email: "joe.dirt@domain.com",
         firstName: "Joe",
         lastName: "Dirt",
         phoneNumber: "(734) 775 3164",
-        email: "joe.dirt@domain.com"
     };
     await api.customer.Post(customerData);
 
@@ -51,9 +50,9 @@ async function main() {
 
     // Create an order
     const orderData: IOrderPostBody = {
+        customerId: customer.id,
         date: "2000-01-01",
         totalAmount: 100,
-        customerId: customer.id,
     };
 
     await api.order.Post(orderData);
@@ -62,7 +61,7 @@ async function main() {
     const order = await api.order[10].Get();
 
     // Get an order (with customer)
-    const orderC = await api.order[10].Get({withCustomer: true});
+    const orderWithCustomer = await api.order[10].Get({withCustomer: true});
 
     // Update an order
     order.totalAmount = 120;

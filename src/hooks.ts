@@ -1,21 +1,33 @@
-import {Index, ITypeRestOptions} from "./index";
-import {buildParams} from "./build-params";
-import {makeProxy, ValidEndpoint} from "./make-proxy";
+import {buildQueryString} from "./build-query-string";
+import {Index} from "./index";
+import {IEndPointParams} from "./make-endpoint";
 
-export function buildHookRunner<T>(rootPath: string, path: string, type: ValidEndpoint, query: any, body: any,
-                            options: ITypeRestOptions<T>) {
+export function buildHookRunner<T>(params: IEndPointParams<T>, query: any, body: any) {
+    const options = params.current._fullOptions;
+    const path = params.current._fullPath;
+    const uri = params.current._uri;
+    const instance = params.current._root;
+    const type = params.type;
+
+    const matchingHooks = options.hooks.filter((hookDefinition: IHookDefinition) => {
+            const isInvalidPath = hookDefinition.path && hookDefinition.path !== path;
+            const isInvalidMethod = hookDefinition.method && hookDefinition.method !== type;
+            return !(isInvalidPath || isInvalidMethod);
+        },
+    );
+
+    if (matchingHooks.length === 0) {
+        return (data: any) => Promise.resolve(data);
+    }
+
     return async (data: any) => {
-        const matchingHooks = options.hooks.filter((hook: IHook) =>
-            ! ( (hook.path && hook.path !== "/" + path) || (hook.method && hook.method !== type) ));
-
         const event: IHookEvent<T> = {
-            fullPath: rootPath + path + (query ? "?" + buildParams(query) : ""),
-            instance: makeProxy(rootPath, path, options),
-            path: "/" + path,
+            uri: uri + (query ? "?" + buildQueryString(query) : ""),
+            instance,
+            path,
             requestBody: body,
             requestQuery: query,
             response: data,
-            rootPath,
         };
 
         for (const hook of matchingHooks) {
@@ -26,15 +38,14 @@ export function buildHookRunner<T>(rootPath: string, path: string, type: ValidEn
     };
 }
 
-export interface IHook<T = any> {
+export interface IHookDefinition<T = any> {
     path?: string;
     method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
     hook: (event: IHookEvent<T>) => Promise<void> | void;
 }
 
 export interface IHookEvent<T> {
-    rootPath: string;
-    fullPath: string;
+    uri: string;
     path: string;
     requestQuery: any;
     requestBody: any;

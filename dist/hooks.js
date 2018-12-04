@@ -35,26 +35,34 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var build_params_1 = require("./build-params");
-var make_proxy_1 = require("./make-proxy");
-function buildHookRunner(rootPath, path, type, query, body, options) {
+var build_query_string_1 = require("./build-query-string");
+function buildHookRunner(params, query, body) {
     var _this = this;
+    var options = params.current._fullOptions;
+    var path = params.current._fullPath;
+    var uri = params.current._uri;
+    var instance = params.current._root;
+    var type = params.type;
+    var matchingHooks = options.hooks.filter(function (hookDefinition) {
+        var isInvalidPath = hookDefinition.path && hookDefinition.path !== path;
+        var isInvalidMethod = hookDefinition.method && hookDefinition.method !== type;
+        return !(isInvalidPath || isInvalidMethod);
+    });
+    if (matchingHooks.length === 0) {
+        return function (data) { return Promise.resolve(data); };
+    }
     return function (data) { return __awaiter(_this, void 0, void 0, function () {
-        var matchingHooks, event, _i, matchingHooks_1, hook;
+        var event, _i, matchingHooks_1, hook;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    matchingHooks = options.hooks.filter(function (hook) {
-                        return !((hook.path && hook.path !== "/" + path) || (hook.method && hook.method !== type));
-                    });
                     event = {
-                        fullPath: rootPath + path + (query ? "?" + build_params_1.buildParams(query) : ""),
-                        instance: make_proxy_1.makeProxy(rootPath, path, options),
-                        path: "/" + path,
+                        uri: uri + (query ? "?" + build_query_string_1.buildQueryString(query) : ""),
+                        instance: instance,
+                        path: path,
                         requestBody: body,
                         requestQuery: query,
                         response: data,
-                        rootPath: rootPath,
                     };
                     _i = 0, matchingHooks_1 = matchingHooks;
                     _a.label = 1;

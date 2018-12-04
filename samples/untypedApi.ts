@@ -1,3 +1,4 @@
+/* tslint:disable:no-console */
 import {typeRest} from "type-rest";
 
 async function main() {
@@ -7,7 +8,7 @@ async function main() {
         const todo = await api.todos[1].Get();
         console.log(todo);
     } catch (e) {
-        console.error("Failed to get todo 1")
+        console.error("Failed to get todo 1");
     }
 
     try {

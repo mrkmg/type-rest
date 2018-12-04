@@ -5,7 +5,9 @@
   "dist/main": "index.js",
   "scripts": {
     "test": "npm run lint && jest",
-    "lint": "tslint src/**/*.ts",
+    "test-watch": "jest --watch",
+    "lint": "tslint src/**/*.ts test/**/*.ts",
+    "lint-fix": "npm run lint -- --fix",
     "compile": "npm run clean && tsc",
     "clean": "rimraf dist/*"
   },
@@ -18,7 +20,11 @@
     "jest-tap-reporter": "^1.9.0",
     "rimraf": "^2.6.2",
     "ts-jest": "^23.10.4",
+    "ts-node": "^7.0.1",
     "tslint": "^5.11.0",
     "typescript": "^3.1.4"
+  },
+  "dependencies": {
+    "merge-options": "^1.0.1"
   }
 }

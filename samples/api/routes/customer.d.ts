@@ -1,4 +1,4 @@
-import {WithBody, WithNone, WithQuery} from "../../../src/";
+import {WithBody, WithNone, WithQuery} from "../../../dist/";
 import {ICustomer} from "../../entities/customer";
 import {IListParams} from "../generics";
 import {IOrdersRoute} from "./order";

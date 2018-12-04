@@ -1,2 +1,3 @@
+import * as jest_fetch_mock from "jest-fetch-mock";
 // @ts-ignore
-global.fetch = require('jest-fetch-mock');
+global.fetch = jest_fetch_mock;

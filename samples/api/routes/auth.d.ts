@@ -1,7 +1,6 @@
-import {WithBody, WithNone} from "../../../src";
+import {WithBody, WithNone} from "../../../dist";
 
-export interface IAuthRoute
-{
+export interface IAuthRoute {
     // Check if Authenticated
     Get: WithNone<boolean>;
     // Login

@@ -1,6 +1,6 @@
 
 export interface IListParams<T> {
     filter?: Partial<T>;
-    sort?: (keyof T)[];
+    sort?: Array<keyof T>;
     limit?: number;
 }

@@ -1,8 +1,7 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function buildParams(obj) {
-    var queryStringOptions = [];
-    var solve = function (v) {
+export function buildQueryString(obj: any) {
+    const queryStringOptions: string[] = [];
+
+    const solve = (v: any) => {
         while (typeof v === "function") {
             v = v();
         }
@@ -11,32 +10,34 @@ function buildParams(obj) {
         }
         return encodeURIComponent(v);
     };
-    var add = function (k, v) {
+
+    const add = (k: string, v: any) => {
         v = solve(v);
+
         if (v === "") {
             queryStringOptions.push(k);
-        }
-        else {
+        } else {
             queryStringOptions.push(k + "=" + v);
         }
     };
-    var makeParams = function (prefix, innerObj) {
+
+    const makeParams = (prefix: string, innerObj: any) => {
         if (typeof innerObj === "object") {
-            for (var key in innerObj) {
+            for (const key in innerObj) {
                 if (innerObj.hasOwnProperty(key)) {
-                    var encodedKey = solve(key);
-                    makeParams(prefix === "" ? encodedKey : prefix + "[" + encodedKey + "]", innerObj[key]);
+                    const encodedKey = solve(key);
+
+                    makeParams(prefix === "" ? encodedKey : `${prefix}[${encodedKey}]`, innerObj[key]);
                 }
             }
-        }
-        else if (prefix !== "") {
+        } else if (prefix !== "") {
             add(prefix, innerObj);
-        }
-        else {
+        } else {
             add(solve(innerObj), null);
         }
     };
+
     makeParams("", obj);
+
     return queryStringOptions.join("&");
 }
-exports.buildParams = buildParams;

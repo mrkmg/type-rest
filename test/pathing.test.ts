@@ -1,12 +1,12 @@
-import {typeRest} from "../src";
 import fetch = require("jest-fetch-mock");
+import {typeRest} from "../src";
 
 describe("Pathing", () => {
     const api = typeRest("https://localhost/");
 
     beforeEach(() => {
         fetch.resetMocks();
-        fetch.mockResponse('{}');
+        fetch.mockResponse("{}");
     });
 
     it("simple", async () => {

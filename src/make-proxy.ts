@@ -1,30 +1,65 @@
-import {Index, ITypeRestOptions} from "./";
-import {makeEndpoint} from "./make-endpoint";
+import mergeOptions = require("merge-options");
+import {Index, ITypeRestOptionsInit} from "./";
+import {IEndPointParams, makeEndpoint, ValidEndpoint} from "./make-endpoint";
 
-export type ValidEndpoint = "DELETE" | "GET" | "POST" | "PATCH" | "PUT";
-
-export function makeProxy<T>(initialPath: string, path: string, options: ITypeRestOptions<T>): Index<T> {
-    return new Proxy({}, {
-        get: (target, name: string) => {
-            switch (name) {
-                case "_options":
-                    return options;
-                case "Get":
-                    return makeEndpoint(initialPath, "GET", path, options);
-                case "Post":
-                    return makeEndpoint(initialPath, "POST", path, options);
-                case "Patch":
-                    return makeEndpoint(initialPath, "PATCH", path, options);
-                case "Delete":
-                    return makeEndpoint(initialPath, "DELETE", path, options);
-                case "Put":
-                    return makeEndpoint(initialPath, "PUT", path, options);
-                default:
-                    const formattedName = formatPath(name);
-                    return makeProxy(initialPath, `${path}${formattedName}/`, options);
+// Todo: Type target
+function getHandler<T>(target: any, name: string, current: Index<T>) {
+    switch (name) {
+        case "_root":
+            if (current._parent) {
+                return current._parent;
             }
-        },
-    }) as Index<T>;
+            return current;
+
+        case "_uri":
+            if (!current._parent) {
+                return current._path;
+            }
+            return `${current._parent._uri}${formatPath(current._path)}/`;
+
+        case "_fullPath":
+            if (!current._parent) {
+                return "/";
+            }
+            return `${current._parent._fullPath}${formatPath(current._path)}/`;
+
+        case "_fullOptions":
+            if (!current._parent) {
+                return mergeOptions.call({concatArrays: true}, {}, current._options);
+            }
+            return mergeOptions.call({concatArrays: true}, current._parent._fullOptions, current._options);
+
+        case "Get":
+        case "Post":
+        case "Patch":
+        case "Delete":
+        case "Put":
+            const endPointParams: IEndPointParams<T> = {
+                current,
+                type: name.toUpperCase() as ValidEndpoint,
+            };
+            return makeEndpoint(endPointParams);
+
+        default:
+            if (target.hasOwnProperty(name)) {
+                return target[name];
+            }
+
+            const proxy = makeProxy(current, name, {hooks: [], params: {headers: {}}});
+            target[name] = proxy;
+            return proxy;
+
+    }
+}
+
+const proxyHandler = {get: getHandler};
+
+export function makeProxy<T>(parent: Index<T>, path: string, options: ITypeRestOptionsInit<T>): Index<T> {
+    return new Proxy({
+        _options: options,
+        _parent: parent,
+        _path: path,
+    }, proxyHandler) as Index<T>;
 }
 
 function formatPath(path: string) {

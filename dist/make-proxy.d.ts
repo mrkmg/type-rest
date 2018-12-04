@@ -1,3 +1,2 @@
-import { Index, ITypeRestOptions } from "./";
-export declare type ValidEndpoint = "DELETE" | "GET" | "POST" | "PATCH" | "PUT";
-export declare function makeProxy<T>(initialPath: string, path: string, options: ITypeRestOptions<T>): Index<T>;
+import { Index, ITypeRestOptionsInit } from "./";
+export declare function makeProxy<T>(parent: Index<T>, path: string, options: ITypeRestOptionsInit<T>): Index<T>;

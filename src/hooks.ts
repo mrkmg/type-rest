@@ -1,54 +1,77 @@
-import {buildQueryString} from "./build-query-string";
-import {Index} from "./index";
+import {Index, ITypeRestOptions} from "./index";
 import {IEndPointParams} from "./make-endpoint";
 
-export function buildHookRunner<T>(params: IEndPointParams<T>, query: any, body: any) {
-    const options = params.current._fullOptions;
-    const path = params.current._fullPath;
-    const uri = params.current._uri;
-    const instance = params.current._root;
-    const type = params.type;
-
-    const matchingHooks = options.hooks.filter((hookDefinition: IHookDefinition) => {
-            const isInvalidPath = hookDefinition.path && hookDefinition.path !== path;
-            const isInvalidMethod = hookDefinition.method && hookDefinition.method !== type;
-            return !(isInvalidPath || isInvalidMethod);
-        },
-    );
+export async function runPreHooks<T>(params: IEndPointParams<T>, preEvent: IPreHookEvent<T>) {
+    const matchingHooks = params.current._fullOptions.hooks.filter((hookDefinition: IHookDefinition<T>) => {
+        if (hookDefinition.type === "post") {
+            return false;
+        }
+        const isInvalidPath = hookDefinition.path && hookDefinition.path !== preEvent.path;
+        const isInvalidMethod = hookDefinition.method && hookDefinition.method !== preEvent.method;
+        return !(isInvalidPath || isInvalidMethod);
+    }) as IPreHookDefinition[];
 
     if (matchingHooks.length === 0) {
-        return (data: any) => Promise.resolve(data);
+        return Promise.resolve();
     }
 
-    return async (data: any) => {
-        const event: IHookEvent<T> = {
-            uri: uri + (query ? "?" + buildQueryString(query) : ""),
-            instance,
-            path,
-            requestBody: body,
-            requestQuery: query,
-            response: data,
-        };
-
-        for (const hook of matchingHooks) {
-            await hook.hook(event);
-        }
-
-        return data;
-    };
+    for (const hook of matchingHooks) {
+        await hook.hook(preEvent);
+    }
 }
 
-export interface IHookDefinition<T = any> {
+export async function runPostHooks<T>(params: IEndPointParams<T>, postEvent: IPostHookEvent<T>) {
+    const matchingHooks = params.current._fullOptions.hooks.filter((hookDefinition: IHookDefinition<T>) => {
+        if (hookDefinition.type === "pre") {
+            return false;
+        }
+        const isInvalidPath = hookDefinition.path && hookDefinition.path !== postEvent.path;
+        const isInvalidMethod = hookDefinition.method && hookDefinition.method !== postEvent.method;
+        return !(isInvalidPath || isInvalidMethod);
+    }) as IPostHookDefinition[];
+
+    if (matchingHooks.length === 0) {
+        return Promise.resolve();
+    }
+
+    for (const hook of matchingHooks) {
+        await hook.hook(postEvent);
+    }
+}
+
+export type IHookDefinition<T = any> = IPreHookDefinition<T> | IPostHookDefinition<T>;
+
+export interface IPreHookDefinition<T = any> {
+    type: "pre";
+    hook: (event: IPreHookEvent<T>) => Promise<void> | void;
     path?: string;
     method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
-    hook: (event: IHookEvent<T>) => Promise<void> | void;
 }
 
-export interface IHookEvent<T> {
-    uri: string;
-    path: string;
-    requestQuery: any;
-    requestBody: any;
-    response: any;
+export interface IPostHookDefinition<T = any> {
+    type: "post";
+    hook: (event: IPostHookEvent<T>) => Promise<void> | void;
+    path?: string;
+    method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
+}
+
+export interface IPreHookEvent<T> {
     instance: Index<T>;
+    options: ITypeRestOptions<T>;
+    path: string;
+    requestBody: any;
+    requestQuery: any;
+    uri: string;
+    method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
+}
+
+export interface IPostHookEvent<T> {
+    instance: Index<T>;
+    options: ITypeRestOptions<T>;
+    path: string;
+    requestBody: any;
+    requestQuery: any;
+    uri: string;
+    method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
+    response: any;
 }

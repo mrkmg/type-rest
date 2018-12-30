@@ -1,4 +1,4 @@
-import {WithBody, WithNone} from "../../../dist";
+import {WithBody, WithNone} from "type-rest";
 
 export interface IAuthRoute {
     // Check if Authenticated

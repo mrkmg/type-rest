@@ -1,2 +1,2 @@
-import { ITypeRestOptions } from "./type-rest";
-export declare function makeRequest(url: string, method: string, options: ITypeRestOptions<any>, body?: any, raw?: boolean): Promise<any>;
+import { IPreHookEvent } from "./hooks";
+export declare function makeRequest<T>(preHookEvent: IPreHookEvent<T>, raw?: boolean): Promise<any>;

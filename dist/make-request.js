@@ -1,10 +1,15 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-function makeRequest(url, method, options, body, raw) {
-    var params = Object.assign({}, options.params);
-    params.method = method;
-    if (typeof body !== "undefined") {
-        params.body = body;
+var build_query_string_1 = require("./build-query-string");
+function makeRequest(preHookEvent, raw) {
+    var params = Object.assign({}, preHookEvent.options.params);
+    var url = preHookEvent.uri;
+    params.method = preHookEvent.method;
+    if (preHookEvent.requestBody !== null) {
+        params.body = preHookEvent.requestBody;
+    }
+    if (preHookEvent.requestQuery !== null) {
+        url = url + "?" + build_query_string_1.buildQueryString(preHookEvent.requestQuery);
     }
     if (raw) {
         return fetch(url, params);

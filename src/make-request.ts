@@ -1,11 +1,18 @@
-import {ITypeRestOptions} from "./type-rest";
+import {buildQueryString} from "./build-query-string";
+import {IPreHookEvent} from "./hooks";
 
-export function makeRequest(url: string, method: string, options: ITypeRestOptions<any>, body?: any, raw?: boolean) {
-    const params: RequestInit = Object.assign({}, options.params);
+export function makeRequest<T>(preHookEvent: IPreHookEvent<T>, raw?: boolean) {
+    const params: RequestInit = Object.assign({}, preHookEvent.options.params);
 
-    params.method = method;
-    if (typeof body !== "undefined") {
-        params.body = body;
+    let url = preHookEvent.uri;
+
+    params.method = preHookEvent.method;
+    if (preHookEvent.requestBody !== null) {
+        params.body = preHookEvent.requestBody;
+    }
+
+    if (preHookEvent.requestQuery !== null) {
+        url = url + "?" + buildQueryString(preHookEvent.requestQuery);
     }
 
     if (raw) {

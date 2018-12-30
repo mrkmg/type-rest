@@ -6,6 +6,7 @@ create and distribute a typed interface to their APIs.
 
 ## Quick Start
 
+api.ts
 ```typescript
 import {typeRest, WithNone, WithBody, WithQuery, IHook} from "type-rest";
 
@@ -66,9 +67,15 @@ export interface Todo {
 
 ## Intended Use
 
-Type Rest is intended to be used by "api owners" who wish to provide
-a fully typed interface to their restful json based api. Body data 
-and return data are both assumed to be json.
+Type Rest is intended to be used to provide a simple to use interface
+to a well defined JSON-based API. All endpoints, query params, and body
+params can be typed out via TypeScript and the provided types, and then
+passed to an instance of type-rest which will then convert those typed
+routes into callable functions.
+
+Type Rest also provides a hook system to trigger actions before and
+after a request. The hooks can modify requests as well as trigger
+side-effects with the response.
 
 In order to provide a typed interface to your api, you must first build
 your API definition. This is done by using the included helper 
@@ -86,6 +93,7 @@ endpoints to your api.
 
 From the example above:
 
+test.ts
 ```typescript
 import {Api} from "./api";
 
@@ -159,10 +167,11 @@ Looking at the api, we have two first-level routes: "authentication" and
 Within authentication, we have 3 end-points, "GET, POST, and DELETE". We can
 directly type those.
 
+authentication-route.ts
 ```typescript
-import {WithNone, WithBody} from "type-rest";
+import {WithBody, WithNone} from "type-rest";
 
-export interface AuthenticationRoute {
+export interface IAuthenticationRoute {
     Get: WithNone<{authenticated: boolean}>;
     Post: WithBody<{username: string, password: string}, {result: boolean, token?: string, error?: string}>;
     Delete: WithNone<void>;
@@ -171,8 +180,9 @@ export interface AuthenticationRoute {
 
 Next, we can start typing out the "todos" route. First thing to do is to type out a Todo.
 
+todo.ts
 ```typescript
-export interface Todo {
+export interface ITodo {
     id: number;
     date: string;
     title: string;
@@ -182,13 +192,14 @@ export interface Todo {
 
 After we have the Todo interface, we will need to type out the route.
 
+todos-route.ts
 ```typescript
-import {WithQuery, WithBody} from "type-rest";
-import {Todo} from "./todo";
+import {WithBody, WithQuery} from "type-rest";
+import {ITodo} from "./todo";
 
-export interface TodosRoute {
-    Get: WithQuery<{page: number, limit?: number}, Todo[]>;
-    Post: WithBody<Pick<Todo, Exclude<keyof Todo, "id" | "completed">>, Todo>;
+export interface ITodosRoute {
+    Get: WithQuery<{page: number, limit?: number}, ITodo[]>;
+    Post: WithBody<Pick<ITodo, Exclude<keyof ITodo, "id" | "completed">>, ITodo>;
 }
 ```
 
@@ -198,12 +209,14 @@ means is the all the keys of `Todo` except "id" and "completed".
 But we are missing the routes which work on a single todo.
 Lets type that route out separately first.
 
+todo-route.ts
 ```typescript
-import {WithNone, WithBody} from "type-rest";
-import {Todo} from "./todo";
-export interface TodoRoute {
-    Get: WithNone<Todo>;
-    Patch: WithBody<Partial<Todo>, Todo>;
+import {WithBody, WithNone} from "type-rest";
+import {ITodo} from "./todo";
+
+export interface ITodoRoute {
+    Get: WithNone<ITodo>;
+    Patch: WithBody<Partial<ITodo>, ITodo>;
     Delete: WithNone<void>;
 }
 ```
@@ -212,29 +225,31 @@ Now that we have that route, we can modify our "TodosRoute" to include
 it. Seeing as the route is variable to the id of the Todo, we can use
 the "index" property in typescript.
 
+todos-route.ts
 ```typescript
-import {WithQuery, WithBody} from "type-rest";
-import {Todo} from "./todo";
-import {TodoRoute} from "./todo-route";
+import {WithBody, WithQuery} from "type-rest";
+import {ITodo} from "./todo";
+import {ITodoRoute} from "./todo-route";
 
-export interface TodosRoute {
-    Get: WithQuery<{page: number, limit?: number}, Todo[]>;
-    Post: WithBody<Pick<Todo, Exclude<keyof Todo, "id" | "completed">>, Todo>;
-    [todoId: number]: TodoRoute;
+export interface ITodosRoute {
+    Get: WithQuery<{page: number, limit?: number}, ITodo[]>;
+    Post: WithBody<Pick<ITodo, Exclude<keyof ITodo, "id" | "completed">>, ITodo>;
+    [todoId: number]: ITodoRoute;
 }
 ```
 
 Now, all of our routes are defined. We just need to bring it all 
 together into a single "root" route which defines the entire API.
 
+routes.ts
 ```typescript
-import {TodosRoute} from "./todos-route";
-import {AuthenticationRoute} from "./authentication-route";
+import {IAuthenticationRoute} from "./authentication-route";
+import {ITodosRoute} from "./todos-route";
 
-export interface AwesomeApiRoutes {
-    authentication: AuthenticationRoute;
-    todos: TodosRoute;
-};
+export interface IAwesomeApiRoutes {
+    authentication: IAuthenticationRoute;
+    todos: ITodosRoute;
+}
 ```
 
 ### Creating the instance
@@ -242,11 +257,12 @@ export interface AwesomeApiRoutes {
 We have the entire API typed out, and want to be actually use it in
 our application. This is very easy:
 
+awesome-api.ts
 ```typescript
-import {AwesomeApiRoutes} from "./routes";
 import {typeRest} from "type-rest";
+import {IAwesomeApiRoutes} from "./routes";
 
-export const AwesomeApi = typeRest<AwesomeApiRoutes>("https://awesome-app/api/v1/");
+export const AwesomeApi = typeRest<IAwesomeApiRoutes>("https://awesome-app/api/v1/");
 ```
 
 Now, anywhere else in your app, you can use the "AwesomeApi" to make 
@@ -265,6 +281,8 @@ a token. If we were required to pass this token in all future requests,
 the user of the API would need to modify the api params.
 
 ```typescript
+import {AwesomeApi} from "./awesome-api.ts"
+
 const result = AwesomeApi.authentication.Post({username: "user", password: "pass"});
 
 if (result.valid) {
@@ -275,28 +293,40 @@ if (result.valid) {
 If you as the API developer wanted to automate this for the
 consumers of your API, you can use the hooks system.
 
+hooks.ts
 ```typescript
-import {AwesomeApiRoutes} from "./routes";
-import {typeRest, IHook} from "type-rest";
+import {IHook} from "type-rest";
 
-const loginHook: IHook = {
-     hook: (ev) => {
-         if (!ev.response.result) return Promise.reject(ev.response.error);
-         ev.instance._options.params.headers['auth-token'] = ev.response.token; 
-     },
-     method: "POST",
-     route: "/authentication/",
- };
-
-const logoutHook: IHook = {
+export const loginHook: IHook = {
     hook: (ev) => {
-        delete ev.instance._options.params.headers['auth-token'];
+        if (!ev.response.result) { return Promise.reject(ev.response.error); }
+        ev.instance._options.params.headers["auth-token"] = ev.response.token;
+    },
+    method: "POST",
+    route: "/authentication/",
+    type: "post",
+};
+
+export const logoutHook: IHook = {
+    hook: (ev) => {
+        delete ev.instance._options.params.headers["auth-token"];
     },
     method: "DELETE",
     route: "/authentication/",
-};
+    type: "post",
 
-export const AwesomeApi = typeRest<AwesomeApiRoutes>("https://awesome-app/api/v1/", {hooks: [loginHook, logoutHook]});
+};
+```
+
+awesome-api-with-hooks.ts
+```typescript
+import {typeRest} from "type-rest";
+import {loginHook, logoutHook} from "./hooks";
+import {IAwesomeApiRoutes} from "./routes";
+
+export const AwesomeApi = typeRest<IAwesomeApiRoutes>("https://awesome-app/api/v1/", {
+    hooks: [loginHook, logoutHook],
+});
 ```
 
 In the above example, you can see two separate hooks, a login hook and
@@ -306,7 +336,7 @@ the /authentication/ route. the logout hook will only be executed on a
 
 ## License
 
-Copyright <YEAR> <COPYRIGHT HOLDER>
+Copyright 2019 Kevin Gravier
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files 

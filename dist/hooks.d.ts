@@ -1,16 +1,36 @@
-import { Index } from "./index";
+import { Index, ITypeRestOptions } from "./index";
 import { IEndPointParams } from "./make-endpoint";
-export declare function buildHookRunner<T>(params: IEndPointParams<T>, query: any, body: any): (data: any) => Promise<any>;
-export interface IHookDefinition<T = any> {
+export declare function runPreHooks<T>(params: IEndPointParams<T>, preEvent: IPreHookEvent<T>): Promise<void>;
+export declare function runPostHooks<T>(params: IEndPointParams<T>, postEvent: IPostHookEvent<T>): Promise<void>;
+export declare type IHookDefinition<T = any> = IPreHookDefinition<T> | IPostHookDefinition<T>;
+export interface IPreHookDefinition<T = any> {
+    type: "pre";
+    hook: (event: IPreHookEvent<T>) => Promise<void> | void;
     path?: string;
     method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
-    hook: (event: IHookEvent<T>) => Promise<void> | void;
 }
-export interface IHookEvent<T> {
-    uri: string;
-    path: string;
-    requestQuery: any;
-    requestBody: any;
-    response: any;
+export interface IPostHookDefinition<T = any> {
+    type: "post";
+    hook: (event: IPostHookEvent<T>) => Promise<void> | void;
+    path?: string;
+    method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
+}
+export interface IPreHookEvent<T> {
     instance: Index<T>;
+    options: ITypeRestOptions<T>;
+    path: string;
+    requestBody: any;
+    requestQuery: any;
+    uri: string;
+    method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
+}
+export interface IPostHookEvent<T> {
+    instance: Index<T>;
+    options: ITypeRestOptions<T>;
+    path: string;
+    requestBody: any;
+    requestQuery: any;
+    uri: string;
+    method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
+    response: any;
 }

@@ -1,4 +1,4 @@
-import {typeRest} from "../../dist";
+import {typeRest} from "type-rest";
 import {IAuthRoute} from "./routes/auth";
 import {ICustomersRoute} from "./routes/customer";
 import {IOrdersRoute} from "./routes/order";

@@ -1,17 +1,17 @@
 {
-  "name": "dynamic-rest",
-  "version": "0.0.1",
-  "description": "Type out your API's for both the front and back end of restful applications",
+  "name": "type-rest",
+  "version": "1.0.0-alpha.1",
+  "description": "A simple fetch wrapper made for TypeScript which allows you fully define an API.",
   "dist/main": "index.js",
   "scripts": {
     "test": "npm run lint && jest",
     "test-watch": "jest --watch",
-    "lint": "tslint src/**/*.ts test/**/*.ts",
+    "lint": "tslint src/**/*.ts test/**/*.ts samples/**/*.ts",
     "lint-fix": "npm run lint -- --fix",
     "compile": "npm run clean && tsc",
     "clean": "rimraf dist/*"
   },
-  "author": "",
+  "author": "Kevin Gravier <kevin@mrkmg.com>",
   "license": "MIT",
   "devDependencies": {
     "@types/jest": "^23.3.9",

@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "lib": ["es5", "es2015.promise", "dom", "es2015"],
+    "lib": ["es5", "dom", "es2015"],
     "target": "es5",
     "typeRoots": [
       "node_modules/@types"
@@ -12,10 +12,11 @@
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
     "declaration": true,
-    "sourceMap": false
+    "sourceMap": false,
+    "baseUrl": "./src"
   },
   "exclude": [
     "node_modules"
   ],
-  "include": ["./src/**/*"]
+  "include": ["src/**/*"]
 }

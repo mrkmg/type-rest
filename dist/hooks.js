@@ -35,50 +35,73 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var build_query_string_1 = require("./build-query-string");
-function buildHookRunner(params, query, body) {
-    var _this = this;
-    var options = params.current._fullOptions;
-    var path = params.current._fullPath;
-    var uri = params.current._uri;
-    var instance = params.current._root;
-    var type = params.type;
-    var matchingHooks = options.hooks.filter(function (hookDefinition) {
-        var isInvalidPath = hookDefinition.path && hookDefinition.path !== path;
-        var isInvalidMethod = hookDefinition.method && hookDefinition.method !== type;
-        return !(isInvalidPath || isInvalidMethod);
-    });
-    if (matchingHooks.length === 0) {
-        return function (data) { return Promise.resolve(data); };
-    }
-    return function (data) { return __awaiter(_this, void 0, void 0, function () {
-        var event, _i, matchingHooks_1, hook;
+function runPreHooks(params, preEvent) {
+    return __awaiter(this, void 0, void 0, function () {
+        var matchingHooks, _i, matchingHooks_1, hook;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    event = {
-                        uri: uri + (query ? "?" + build_query_string_1.buildQueryString(query) : ""),
-                        instance: instance,
-                        path: path,
-                        requestBody: body,
-                        requestQuery: query,
-                        response: data,
-                    };
+                    matchingHooks = params.current._fullOptions.hooks.filter(function (hookDefinition) {
+                        if (hookDefinition.type === "post") {
+                            return false;
+                        }
+                        var isInvalidPath = hookDefinition.path && hookDefinition.path !== preEvent.path;
+                        var isInvalidMethod = hookDefinition.method && hookDefinition.method !== preEvent.method;
+                        return !(isInvalidPath || isInvalidMethod);
+                    });
+                    if (matchingHooks.length === 0) {
+                        return [2 /*return*/, Promise.resolve()];
+                    }
                     _i = 0, matchingHooks_1 = matchingHooks;
                     _a.label = 1;
                 case 1:
                     if (!(_i < matchingHooks_1.length)) return [3 /*break*/, 4];
                     hook = matchingHooks_1[_i];
-                    return [4 /*yield*/, hook.hook(event)];
+                    return [4 /*yield*/, hook.hook(preEvent)];
                 case 2:
                     _a.sent();
                     _a.label = 3;
                 case 3:
                     _i++;
                     return [3 /*break*/, 1];
-                case 4: return [2 /*return*/, data];
+                case 4: return [2 /*return*/];
             }
         });
-    }); };
+    });
 }
-exports.buildHookRunner = buildHookRunner;
+exports.runPreHooks = runPreHooks;
+function runPostHooks(params, postEvent) {
+    return __awaiter(this, void 0, void 0, function () {
+        var matchingHooks, _i, matchingHooks_2, hook;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    matchingHooks = params.current._fullOptions.hooks.filter(function (hookDefinition) {
+                        if (hookDefinition.type === "pre") {
+                            return false;
+                        }
+                        var isInvalidPath = hookDefinition.path && hookDefinition.path !== postEvent.path;
+                        var isInvalidMethod = hookDefinition.method && hookDefinition.method !== postEvent.method;
+                        return !(isInvalidPath || isInvalidMethod);
+                    });
+                    if (matchingHooks.length === 0) {
+                        return [2 /*return*/, Promise.resolve()];
+                    }
+                    _i = 0, matchingHooks_2 = matchingHooks;
+                    _a.label = 1;
+                case 1:
+                    if (!(_i < matchingHooks_2.length)) return [3 /*break*/, 4];
+                    hook = matchingHooks_2[_i];
+                    return [4 /*yield*/, hook.hook(postEvent)];
+                case 2:
+                    _a.sent();
+                    _a.label = 3;
+                case 3:
+                    _i++;
+                    return [3 /*break*/, 1];
+                case 4: return [2 /*return*/];
+            }
+        });
+    });
+}
+exports.runPostHooks = runPostHooks;

@@ -4,4 +4,7 @@ export interface IEndPointParams<T> {
     current: Index<T>;
     type: ValidEndpoint;
 }
-export declare function makeEndpoint<T>(params: IEndPointParams<T>): any;
+export declare function makeEndpoint<T>(params: IEndPointParams<T>): {
+    (...args: any[]): Promise<any>;
+    raw(...args: any[]): Promise<any>;
+};

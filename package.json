@@ -1,8 +1,9 @@
 {
   "name": "type-rest",
-  "version": "1.0.0-alpha.1",
+  "version": "1.0.0-alpha.2",
   "description": "A simple fetch wrapper made for TypeScript which allows you fully define an API.",
-  "dist/main": "index.js",
+  "main":  "dist/index.js",
+  "files": ["dist/**/*"],
   "scripts": {
     "test": "npm run lint && jest",
     "test-watch": "jest --watch",

@@ -1,6 +1,6 @@
 {
   "name": "type-rest",
-  "version": "1.0.0-alpha.2",
+  "version": "1.0.0-alpha.3",
   "description": "A simple fetch wrapper made for TypeScript which allows you fully define an API.",
   "main":  "dist/index.js",
   "files": ["dist/**/*"],
@@ -11,6 +11,10 @@
     "lint-fix": "npm run lint -- --fix",
     "compile": "npm run clean && tsc",
     "clean": "rimraf dist/*"
+  },
+  "repository": "github:mrkmg/type-rest",
+  "bugs": {
+    "url" : "https://github.com/mrkmg/type-rest/issues"
   },
   "author": "Kevin Gravier <kevin@mrkmg.com>",
   "license": "MIT",

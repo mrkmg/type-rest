@@ -6,7 +6,7 @@ function makeRequest(preHookEvent, raw) {
     var url = preHookEvent.uri;
     params.method = preHookEvent.method;
     if (preHookEvent.requestBody !== null) {
-        params.body = preHookEvent.requestBody;
+        params.body = JSON.stringify(preHookEvent.requestBody);
     }
     if (preHookEvent.requestQuery !== null) {
         url = url + "?" + build_query_string_1.buildQueryString(preHookEvent.requestQuery);

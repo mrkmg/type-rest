@@ -287,7 +287,7 @@ describe("Hooks - Pre", () => {
 
         await api.test.Get();
 
-        expect(fetch.mock.calls[0][1]).toHaveProperty("body", {test: "test"});
+        expect(fetch.mock.calls[0][1]).toHaveProperty("body", "{\"test\":\"test\"}");
     });
 
     it("Multiple", async () => {

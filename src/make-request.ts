@@ -8,7 +8,7 @@ export function makeRequest<T>(preHookEvent: IPreHookEvent<T>, raw?: boolean) {
 
     params.method = preHookEvent.method;
     if (preHookEvent.requestBody !== null) {
-        params.body = preHookEvent.requestBody;
+        params.body = JSON.stringify(preHookEvent.requestBody);
     }
 
     if (preHookEvent.requestQuery !== null) {

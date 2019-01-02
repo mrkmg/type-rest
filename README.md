@@ -6,6 +6,8 @@ create and distribute a typed interface to their APIs.
 
 ## Quick Start
 
+First, create an API instance and Spec:
+
 api.ts
 ```typescript
 import {typeRest, WithNone, WithBody, WithQuery, IHook} from "type-rest";
@@ -102,7 +104,7 @@ async function testApi() {
     
     if (!authStatus.authenticated) {
         await Api.authentication.Post({username: "test", password: "test"});
-        // Due to the hook define, this will add the appropiate token header to all future API calls
+        // Due to the hook define, this will add the appropriate token header to all future API calls
     }
     
     const todos = await Api.todos.Get({page: 2}); // List page two

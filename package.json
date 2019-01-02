@@ -1,6 +1,6 @@
 {
   "name": "type-rest",
-  "version": "1.0.0-alpha.4",
+  "version": "1.0.0-alpha.5",
   "description": "A simple fetch wrapper made for TypeScript which allows you fully define an API.",
   "main":  "dist/index.js",
   "files": ["dist/**/*"],

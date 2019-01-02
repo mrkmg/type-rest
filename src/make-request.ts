@@ -9,11 +9,15 @@ export function makeRequest<T>(preHookEvent: IPreHookEvent<T>, raw?: boolean) {
     params.method = preHookEvent.method;
     if (preHookEvent.requestBody !== null) {
         params.body = JSON.stringify(preHookEvent.requestBody);
+        params.headers["Content-Type"] = "application/json";
     }
 
     if (preHookEvent.requestQuery !== null) {
         url = url + "?" + buildQueryString(preHookEvent.requestQuery);
     }
+
+    // tslint:disable-next-line
+    params.headers["Accept"] = "application/json";
 
     if (raw) {
         return fetch(url, params);

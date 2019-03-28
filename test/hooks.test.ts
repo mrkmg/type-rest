@@ -1,6 +1,28 @@
 import fetch = require("jest-fetch-mock");
 import {IHookDefinition, IPostHookEvent, IPreHookEvent, typeRest} from "../src";
 
+describe("Hooks - POST with Error", () => {
+    beforeEach(() => {
+        fetch.resetMocks();
+        fetch.mockResponse('{"test"}', {status: 403});
+    });
+
+    it("Still calls post hook", async () => {
+        let didRunHook = false;
+        let didReject = false;
+        const hook: IHookDefinition = {
+            hook: () => { didRunHook = true; },
+            type: "post",
+        };
+
+        const api = typeRest("https://localhost/", {hooks: [hook]});
+
+        await api.test.Get().catch(() => { didReject = true; });
+        expect(didRunHook).toEqual(true);
+        expect(didReject).toEqual(true);
+    });
+});
+
 describe("Hooks - POST", () => {
     beforeEach(() => {
         fetch.resetMocks();

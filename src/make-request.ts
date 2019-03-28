@@ -1,7 +1,7 @@
 import {buildQueryString} from "./build-query-string";
 import {IPreHookEvent} from "./hooks";
 
-export function makeRequest<T>(preHookEvent: IPreHookEvent<T>, raw?: boolean) {
+export function makeRequest<T>(preHookEvent: IPreHookEvent<T>) {
     const params: RequestInit = Object.assign({}, preHookEvent.options.params);
 
     let url = preHookEvent.uri;
@@ -19,9 +19,5 @@ export function makeRequest<T>(preHookEvent: IPreHookEvent<T>, raw?: boolean) {
     // tslint:disable-next-line
     params.headers["Accept"] = "application/json";
 
-    if (raw) {
-        return fetch(url, params);
-    } else {
-        return fetch(url, params).then((r: Response) => r.ok ? r.json() : Promise.reject(r));
-    }
+    return fetch(url, params);
 }

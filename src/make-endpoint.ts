@@ -61,13 +61,27 @@ async function runRequest<T>(params: IEndPointParams<T>, body: any, query: any, 
     if (!raw) {
         await runPreHooks(params, preHookEvent);
     }
-    const response = await makeRequest(preHookEvent, raw);
-    if (!raw) {
+
+    const rawResponse = await makeRequest(preHookEvent);
+
+    if (raw) {
+        return rawResponse;
+    }
+
+    if (rawResponse.ok) {
+        const response = await rawResponse.json();
         const postHookEvent = {
             ...preHookEvent,
             response,
         };
         await runPostHooks(params, postHookEvent);
+        return response;
+    } else {
+        const postHookEvent = {
+            ...preHookEvent,
+            response: rawResponse,
+        };
+        await runPostHooks(params, postHookEvent);
+        return Promise.reject(rawResponse);
     }
-    return response;
 }

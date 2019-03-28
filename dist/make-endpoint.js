@@ -108,7 +108,7 @@ function withBodyFunc(params) {
 }
 function runRequest(params, body, query, raw) {
     return __awaiter(this, void 0, void 0, function () {
-        var preHookEvent, response, postHookEvent;
+        var preHookEvent, rawResponse, response, postHookEvent, postHookEvent;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -126,16 +126,27 @@ function runRequest(params, body, query, raw) {
                 case 1:
                     _a.sent();
                     _a.label = 2;
-                case 2: return [4 /*yield*/, make_request_1.makeRequest(preHookEvent, raw)];
+                case 2: return [4 /*yield*/, make_request_1.makeRequest(preHookEvent)];
                 case 3:
+                    rawResponse = _a.sent();
+                    if (raw) {
+                        return [2 /*return*/, rawResponse];
+                    }
+                    if (!rawResponse.ok) return [3 /*break*/, 6];
+                    return [4 /*yield*/, rawResponse.json()];
+                case 4:
                     response = _a.sent();
-                    if (!!raw) return [3 /*break*/, 5];
                     postHookEvent = __assign({}, preHookEvent, { response: response });
                     return [4 /*yield*/, hooks_1.runPostHooks(params, postHookEvent)];
-                case 4:
+                case 5:
                     _a.sent();
-                    _a.label = 5;
-                case 5: return [2 /*return*/, response];
+                    return [2 /*return*/, response];
+                case 6:
+                    postHookEvent = __assign({}, preHookEvent, { response: rawResponse });
+                    return [4 /*yield*/, hooks_1.runPostHooks(params, postHookEvent)];
+                case 7:
+                    _a.sent();
+                    return [2 /*return*/, Promise.reject(rawResponse)];
             }
         });
     });

@@ -25,6 +25,10 @@ function getHandler(target, name, current) {
                 return mergeOptions.call({ concatArrays: true }, {}, current._options);
             }
             return mergeOptions.call({ concatArrays: true }, current._parent._fullOptions, current._options);
+        case "_addHook":
+            return function (hook) {
+                current._options.hooks.push(hook);
+            };
         case "Get":
         case "Post":
         case "Patch":

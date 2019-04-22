@@ -18,6 +18,7 @@ interface IndexPrivates<T> {
     readonly _fullPath: string;
     readonly _uri: string;
     readonly _fullOptions: ITypeRestOptions<T>;
+    readonly _addHook: (hook: IHookDefinition) => void;
 }
 export declare type Index<T> = Indexed<KeyTypes<T>> & IndexPrivates<T>;
 export declare type AllowedInitKeys = "mode" | "cache" | "credentials" | "headers" | "redirect" | "referrer";

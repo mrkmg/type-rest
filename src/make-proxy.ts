@@ -1,5 +1,5 @@
 import mergeOptions = require("merge-options");
-import {Index, ITypeRestOptionsInit} from "./";
+import {IHookDefinition, Index, ITypeRestOptionsInit} from "./";
 import {IEndPointParams, makeEndpoint, ValidEndpoint} from "./make-endpoint";
 
 // Todo: Type target
@@ -28,6 +28,11 @@ function getHandler<T>(target: any, name: string, current: Index<T>) {
                 return mergeOptions.call({concatArrays: true}, {}, current._options);
             }
             return mergeOptions.call({concatArrays: true}, current._parent._fullOptions, current._options);
+
+        case "_addHook":
+            return (hook: IHookDefinition) => {
+                current._options.hooks.push(hook);
+            };
 
         case "Get":
         case "Post":

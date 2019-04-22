@@ -1,6 +1,42 @@
 import fetch = require("jest-fetch-mock");
 import {IHookDefinition, IPostHookEvent, IPreHookEvent, typeRest} from "../src";
 
+describe("Hooks - _addHook func", () => {
+    beforeEach(() => {
+        fetch.resetMocks();
+        fetch.mockResponse('{"test": "test"}');
+    });
+
+    it("calls hook after adding", async () => {
+        let hookRunCount = 0;
+        const hook: IHookDefinition = {
+            hook: () => { hookRunCount++; },
+            type: "post",
+        };
+        const api = typeRest("https://localhost/");
+
+        await api.test.Get();
+        api._addHook(hook);
+        await api.test.Get();
+
+        expect(hookRunCount).toEqual(1);
+    });
+
+    it("only calls hooks on added route", async () => {
+        let hookRunCount = 0;
+        const hook: IHookDefinition = {
+            hook: () => { hookRunCount++; },
+            type: "post",
+        };
+        const api = typeRest("https://localhost/");
+
+        api.test1._addHook(hook);
+        await api.test1.Get();
+        await api.test2.Get();
+        expect(hookRunCount).toEqual(1);
+    });
+});
+
 describe("Hooks - POST with Error", () => {
     beforeEach(() => {
         fetch.resetMocks();

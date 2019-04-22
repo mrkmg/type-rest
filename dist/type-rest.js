@@ -15,6 +15,7 @@ function typeRest(path, options) {
         cache: "default",
         credentials: "same-origin",
         headers: {},
+        hooks: [],
         mode: "same-origin",
         redirect: "follow",
         referrer: "client",

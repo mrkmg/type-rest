@@ -17,6 +17,7 @@ interface IndexPrivates<T> {
     readonly _fullPath: string;
     readonly _uri: string;
     readonly _fullOptions: ITypeRestOptions<T>;
+    readonly _addHook: (hook: IHookDefinition) => void;
 }
 
 export type Index<T> = Indexed<KeyTypes<T>> & IndexPrivates<T>;
@@ -49,6 +50,7 @@ export function typeRest<T = UntypedTypeRestApi>(path: string, options?: ITypeRe
         cache: "default",
         credentials: "same-origin",
         headers: {},
+        hooks: [],
         mode: "same-origin",
         redirect: "follow",
         referrer: "client",

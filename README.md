@@ -336,6 +336,25 @@ a logout hook. The login hook will only be executed on a "POST" call to
 the /authentication/ route. the logout hook will only be executed on a
 "DELETE" call the /authentication and will remove the token.
 
+## Adding hooks at runtime
+
+If you have an instance of Type Rest, and want to add a hook, you can
+use the `_addHook` method. From the examples above:
+
+```typescript
+import {typeRest} from "type-rest";
+import {loginHook, logoutHook} from "./hooks";
+import {IAwesomeApiRoutes} from "./routes";
+
+export const AwesomeApi = typeRest<IAwesomeApiRoutes>("https://awesome-app/api/v1/");
+
+AwesomeApi._addHook(loginHook);
+AwesomeApi._addHook(logoutHook);
+```
+
+Important: If `_addHook` is called from a sub-path, the hook will only apply
+to the route and its child-routes, regardless of the "path" property.
+
 ## License
 
 Copyright 2019 Kevin Gravier

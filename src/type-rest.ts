@@ -36,7 +36,9 @@ let window: Window;
 export const TypeRestDefaults: {
     fetchImplementation: (input: Request | string, init?: RequestInit) => Promise<Response>
 } = {
-    fetchImplementation: (window !== undefined) && window.fetch ? window.fetch : require("node-fetch"),
+    fetchImplementation: (window !== undefined) && window.fetch ?
+        (input: Request | string, init?: RequestInit) => window.fetch(input, init) :
+        require("node-fetch"),
 };
 
 export function typeRest<T = UntypedTypeRestApi>(path: string, options?: ITypeRestOptionsInit<T>): Index<T> {

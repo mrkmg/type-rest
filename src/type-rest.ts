@@ -39,6 +39,7 @@ function getDefaultFetch(): FetchSignature {
     if (typeof global !== "undefined" && "fetch" in global)
         return global.fetch.bind(global);
     try {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
         return require("node-fetch") as FetchSignature;
     } catch (e) {
         throw new Error("No version of Fetch was found");

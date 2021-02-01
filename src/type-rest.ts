@@ -32,13 +32,23 @@ export interface ITypeRestOptions<T> {
 
 export type ITypeRestOptionsInit<T> = Partial<ITypeRestOptions<T>>;
 
-let window: Window;
+export type FetchSignature = (input: Request | string, init?: RequestInit) => Promise<Response>;
+function getDefaultFetch(): FetchSignature {
+    if (typeof window !== "undefined" && "fetch" in window)
+        return window.fetch.bind(window);
+    if (typeof global !== "undefined" && "fetch" in global)
+        return global.fetch.bind(global);
+    try {
+        return require("node-fetch") as FetchSignature;
+    } catch (e) {
+        throw new Error("No version of Fetch was found");
+    }
+}
+
 export const TypeRestDefaults: {
-    fetchImplementation: (input: Request | string, init?: RequestInit) => Promise<Response>
+    fetchImplementation: FetchSignature
 } = {
-    fetchImplementation: (window !== undefined) && window.fetch ?
-        (input: Request | string, init?: RequestInit) => window.fetch(input, init) :
-        require("node-fetch"),
+    fetchImplementation: getDefaultFetch()
 };
 
 export function typeRest<T = UntypedTypeRestApi>(path: string, options?: ITypeRestOptionsInit<T>): Index<T> {

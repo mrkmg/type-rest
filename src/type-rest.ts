@@ -1,15 +1,14 @@
 import {IHookDefinition} from "./hooks";
 import {makeProxy} from "./make-proxy";
-import {UntypedTypeRestApi} from "./untyped";
+import {ITypeRestEndpoints, UntypedTypeRestApi} from "./untyped";
 
-type KeyTypes<T> = Exclude<T, IndexPrivates<T> & {Get: any, Post: any, Patch: any, Delete: any, Put: any}>;
+type KeyTypes<T> = Exclude<T, IIndexPrivates<T> & ITypeRestEndpoints>;
 
 type Indexed<T> = {
-    // @ts-ignore
-    [P in keyof T]: T[P] & IndexPrivates<T[P]>;
+    [P in keyof T]: T[P] & IIndexPrivates<T[P]>;
 };
 
-interface IndexPrivates<T> {
+interface IIndexPrivates<T> {
     readonly _root: Index<T>;
     readonly _parent: Index<T>;
     readonly _options: ITypeRestOptions<T>;
@@ -17,10 +16,10 @@ interface IndexPrivates<T> {
     readonly _fullPath: string;
     readonly _uri: string;
     readonly _fullOptions: ITypeRestOptions<T>;
-    readonly _addHook: (hook: IHookDefinition) => void;
+    readonly _addHook: (hook: IHookDefinition<T>) => void;
 }
 
-export type Index<T> = Indexed<KeyTypes<T>> & IndexPrivates<T>;
+export type Index<T> = Indexed<KeyTypes<T>> & IIndexPrivates<T>;
 
 export type AllowedInitKeys = "mode" | "cache" | "credentials" | "headers" | "redirect" | "referrer";
 // This is a work-around for headers being a stupid type in RequestInit.
@@ -32,6 +31,13 @@ export interface ITypeRestOptions<T> {
 }
 
 export type ITypeRestOptionsInit<T> = Partial<ITypeRestOptions<T>>;
+
+let window: Window;
+export const TypeRestDefaults: {
+    fetchImplementation: (input: Request | string, init?: RequestInit) => Promise<Response>
+} = {
+    fetchImplementation: (window !== undefined) && window.fetch ? window.fetch : require("node-fetch"),
+};
 
 export function typeRest<T = UntypedTypeRestApi>(path: string, options?: ITypeRestOptionsInit<T>): Index<T> {
     if (typeof options === "undefined") {

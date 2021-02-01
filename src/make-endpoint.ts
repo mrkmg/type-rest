@@ -9,26 +9,26 @@ export interface IEndPointParams<T> {
     type: ValidEndpoint;
 }
 
-export function makeEndpoint<T>(params: IEndPointParams<T>) {
+export function makeEndpoint<T>(params: IEndPointParams<T>): (...args: unknown[]) => Promise<unknown> {
     switch (params.type) {
-        case "DELETE":
-        case "GET":
-            return withoutBodyFunc<T>(params);
-        case "POST":
-        case "PATCH":
-        case "PUT":
-            return withBodyFunc<T>(params);
-        default:
-            throw new Error(`Unknown Endpoint Type: ${params.type}`);
+    case "DELETE":
+    case "GET":
+        return withoutBodyFunc<T>(params);
+    case "POST":
+    case "PATCH":
+    case "PUT":
+        return withBodyFunc<T>(params);
+    default:
+        throw new Error(`Unknown Endpoint Type: ${params.type}`);
     }
 }
 
 function withoutBodyFunc<T>(params: IEndPointParams<T>) {
-    const func = async (...args: any[]) => {
+    const func = async (...args: unknown[]) => {
         return runRequest(params, null, args.length === 1 ? args[0] : null, false);
     };
 
-    func.raw = (...args: any[]) => {
+    func.raw = (...args: unknown[]) => {
         return runRequest(params, null, args.length === 1 ? args[0] : null, true);
     };
 
@@ -36,18 +36,18 @@ function withoutBodyFunc<T>(params: IEndPointParams<T>) {
 }
 
 function withBodyFunc<T>(params: IEndPointParams<T>) {
-    const func = async (...args: any[]) => {
+    const func = async (...args: unknown[]) => {
         return runRequest(params, args.length >= 1 ? args[0] : null, args.length === 2 ? args[1] : null, false);
     };
 
-    func.raw = (...args: any[]) => {
+    func.raw = (...args: unknown[]) => {
         return runRequest(params, args.length >= 1 ? args[0] : null, args.length === 2 ? args[1] : null, true);
     };
 
     return func;
 }
 
-async function runRequest<T>(params: IEndPointParams<T>, body: any, query: any, raw: boolean) {
+async function runRequest<T>(params: IEndPointParams<T>, body: unknown, query: unknown, raw: boolean) {
     const preHookEvent = {
         instance: params.current._root,
         method: params.type,

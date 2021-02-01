@@ -1,17 +1,17 @@
-export function buildQueryString(obj: any) {
+export function buildQueryString(obj: unknown): string {
     const queryStringOptions: string[] = [];
 
-    const solve = (v: any) => {
+    const solve = (v: unknown) => {
         while (typeof v === "function") {
             v = v();
         }
         if (v === null || v === undefined) {
             v = "";
         }
-        return encodeURIComponent(v);
+        return encodeURIComponent(v as string | number | boolean);
     };
 
-    const add = (k: string, v: any) => {
+    const add = (k: string, v: unknown) => {
         v = solve(v);
 
         if (v === "") {
@@ -21,10 +21,10 @@ export function buildQueryString(obj: any) {
         }
     };
 
-    const makeParams = (prefix: string, innerObj: any) => {
+    const makeParams = (prefix: string, innerObj: unknown) => {
         if (typeof innerObj === "object") {
             for (const key in innerObj) {
-                if (innerObj.hasOwnProperty(key)) {
+                if (key in innerObj) {
                     const encodedKey = solve(key);
 
                     makeParams(prefix === "" ? encodedKey : `${prefix}[${encodedKey}]`, innerObj[key]);

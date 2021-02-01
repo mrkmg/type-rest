@@ -9,8 +9,8 @@ export type WithBodyRaw<TBody> = (body: TBody) => Promise<Response>;
 export type WithQueryRaw<TQuery> = (query: TQuery) => Promise<Response>;
 export type WithBodyAndQueryRaw<TBody, TQuery> = (body: TBody, query: TQuery) => Promise<Response>;
 
-export type DeleteRoute = WithNone<any> & WithQuery<any, any>;
-export type GetRoute = WithNone<any> & WithQuery<any, any>;
-export type PostRoute = WithBody<any, any> & WithBodyAndQuery<any, any, any>;
-export type PatchRoute = WithBody<any, any> & WithBodyAndQuery<any, any, any>;
-export type PutRoute =  WithBody<any, any> & WithBodyAndQuery<any, any, any>;
+export type DeleteRoute = WithNone<unknown> & WithQuery<unknown, unknown>;
+export type GetRoute = WithNone<unknown> & WithQuery<unknown, unknown>;
+export type PostRoute = WithBody<unknown, unknown> & WithBodyAndQuery<unknown, unknown, unknown>;
+export type PatchRoute = WithBody<unknown, unknown> & WithBodyAndQuery<unknown, unknown, unknown>;
+export type PutRoute =  WithBody<unknown, unknown> & WithBodyAndQuery<unknown, unknown, unknown>;

@@ -1,21 +1,24 @@
 import fetch = require("jest-fetch-mock");
-import {typeRest} from "../src";
+import {typeRest, TypeRestDefaults} from "../src";
 
 describe("Returns", () => {
+    beforeAll(() => {
+        TypeRestDefaults.fetchImplementation = fetch;
+    });
 
     beforeEach(() => {
         fetch.resetMocks();
     });
 
     it("json response, successful", async () => {
-        fetch.mockResponse('{"responseParam1": "responseValue1"}');
+        fetch.mockResponse("{\"responseParam1\": \"responseValue1\"}");
         const api = typeRest("https://localhost/");
         const result = await api.Get();
         expect(result).toEqual({responseParam1: "responseValue1"});
     });
 
     it("json response, 500", async () => {
-        fetch.mockResponse('{"responseParam1": "responseValue1"}', {status: 500});
+        fetch.mockResponse("{\"responseParam1\": \"responseValue1\"}", {status: 500});
         const api = typeRest("https://localhost/");
         expect.assertions(1);
         await api.Get().catch((e) => expect(e).toHaveProperty("status", 500));
@@ -31,7 +34,7 @@ describe("Returns", () => {
     });
 
     it("raw response, 500", async () => {
-        fetch.mockResponse('{"responseParam1": "responseValue1"}', {status: 500});
+        fetch.mockResponse("{\"responseParam1\": \"responseValue1\"}", {status: 500});
         const api = typeRest("https://localhost/");
         expect.assertions(1);
         await api.Get().catch((e) => expect(e).toHaveProperty("status", 500));

@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "lib": ["es5", "dom", "es2015"],
+    "lib": ["es5", "dom", "ES2015"],
     "target": "es5",
     "typeRoots": [
       "node_modules/@types"
@@ -13,7 +13,12 @@
     "allowSyntheticDefaultImports": true,
     "declaration": true,
     "sourceMap": false,
-    "baseUrl": "./src"
+    "baseUrl": "./src",
+    "paths": {
+      "type-rest": [
+        "src/type-rest.ts"
+      ]
+    }
   },
   "exclude": [
     "node_modules"

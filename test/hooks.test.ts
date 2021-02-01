@@ -1,10 +1,14 @@
 import fetch = require("jest-fetch-mock");
-import {IHookDefinition, IPostHookEvent, IPreHookEvent, typeRest} from "../src";
+import {IHookDefinition, IPostHookEvent, IPreHookEvent, typeRest, TypeRestDefaults, UntypedTypeRestApi} from "../src";
 
 describe("Hooks - _addHook func", () => {
+    beforeAll(() => {
+        TypeRestDefaults.fetchImplementation = fetch;
+    });
+
     beforeEach(() => {
         fetch.resetMocks();
-        fetch.mockResponse('{"test": "test"}');
+        fetch.mockResponse("{\"test\": \"test\"}");
     });
 
     it("calls hook after adding", async () => {
@@ -40,7 +44,7 @@ describe("Hooks - _addHook func", () => {
 describe("Hooks - POST with Error", () => {
     beforeEach(() => {
         fetch.resetMocks();
-        fetch.mockResponse('{"test"}', {status: 403});
+        fetch.mockResponse("{\"test\"}", {status: 403});
     });
 
     it("Still calls post hook", async () => {
@@ -62,7 +66,7 @@ describe("Hooks - POST with Error", () => {
 describe("Hooks - POST", () => {
     beforeEach(() => {
         fetch.resetMocks();
-        fetch.mockResponse('{"responseParam1": "responseValue1"}');
+        fetch.mockResponse("{\"responseParam1\": \"responseValue1\"}");
     });
 
     it("All Calls", async () => {
@@ -135,7 +139,7 @@ describe("Hooks - POST", () => {
     });
 
     it("Event Params", async () => {
-        let r: IPostHookEvent<any>;
+        let r: IPostHookEvent<unknown>;
         const hook: IHookDefinition = {
             hook: (ev) => { r = ev; },
             type: "post",
@@ -153,7 +157,8 @@ describe("Hooks - POST", () => {
     });
 
     it("Fake Auth Response", async () => {
-        const hook: IHookDefinition = {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const hook: IHookDefinition<UntypedTypeRestApi, unknown, unknown, any> = {
             hook: (ev) => {
                 ev.instance._options.params.headers.auth = ev.response.responseParam1;
             },
@@ -244,7 +249,7 @@ describe("Hooks - POST", () => {
 describe("Hooks - Pre", () => {
     beforeEach(() => {
         fetch.resetMocks();
-        fetch.mockResponse('{"responseParam1": "responseValue1"}');
+        fetch.mockResponse("{\"responseParam1\": \"responseValue1\"}");
     });
 
     it("All Calls", async () => {
@@ -317,7 +322,7 @@ describe("Hooks - Pre", () => {
     });
 
     it("Event Params", async () => {
-        let r: IPreHookEvent<any>;
+        let r: IPreHookEvent<unknown>;
         const hook: IHookDefinition = {
             hook: (ev) => { r = ev; },
             type: "pre",

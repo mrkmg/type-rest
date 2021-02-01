@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {api} from "./api";
 import {ICustomerPostBody} from "./api/routes/customer";
 import {IOrderPostBody} from "./api/routes/order";
@@ -11,7 +12,7 @@ async function main() {
         const authResult = await api.auth.Post({username: "test", password: "test"});
 
         if (authResult.valid) {
-            api.headers.token = authResult.jwt;
+            api._options.params.headers.token = authResult.jwt;
         } else {
             alert("Failed to login!");
         }

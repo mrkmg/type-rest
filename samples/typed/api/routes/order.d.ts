@@ -1,4 +1,4 @@
-import {WithBody, WithBodyAndQuery, WithNone, WithQuery} from "type-rest";
+import {WithBody, WithBodyAndQuery, WithNone, WithQuery} from "../../../../src";
 import {IOrder} from "../../entities/order";
 import {IListParams} from "../generics";
 

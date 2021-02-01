@@ -1,7 +1,11 @@
 import fetch = require("jest-fetch-mock");
-import {typeRest} from "../src";
+import {typeRest, TypeRestDefaults} from "../src";
 
 describe("Custom Initialization", () => {
+    beforeAll(() => {
+        TypeRestDefaults.fetchImplementation = fetch;
+    });
+
     beforeEach(() => {
         fetch.resetMocks();
         fetch.mockResponse("{}");

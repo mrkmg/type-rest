@@ -1,5 +1,5 @@
 import mergeOptions = require("merge-options");
-import {IHookDefinition, Index, ITypeRestOptions, ITypeRestOptionsInit} from "./";
+import {IHookDefinition, Index, ITypeRestOptions, ValidPathStyles} from "./";
 import {IEndPointParams, makeEndpoint, ValidEndpoint} from "./make-endpoint";
 
 function getHandler<T>(target: Index<T>, name: string, current: Index<T>) {
@@ -16,13 +16,13 @@ function getHandler<T>(target: Index<T>, name: string, current: Index<T>) {
         if (!current._parent) {
             return current._path;
         }
-        return `${current._parent._uri}${formatPath(current._path)}/`;
+        return `${current._parent._uri}${formatPath(current._path, current._options.pathStyle)}/`;
 
     case "_fullPath":
         if (!current._parent) {
             return "/";
         }
-        return `${current._parent._fullPath}${formatPath(current._path)}/`;
+        return `${current._parent._fullPath}${formatPath(current._path, current._options.pathStyle)}/`;
 
     case "_fullOptions":
         if (!current._parent) {
@@ -51,7 +51,7 @@ function getHandler<T>(target: Index<T>, name: string, current: Index<T>) {
             return target[name];
         }
 
-        proxy = makeProxy(current, name, {hooks: [], params: {headers: {}}});
+        proxy = makeProxy(current, name, {hooks: [], params: {headers: {}}, pathStyle: current._options.pathStyle});
         target[name] = proxy;
         return proxy;
 
@@ -60,18 +60,32 @@ function getHandler<T>(target: Index<T>, name: string, current: Index<T>) {
 
 const proxyHandler = {get: getHandler};
 
-export function makeProxy<T>(parent: Index<T>, path: string, options: ITypeRestOptionsInit<T>): Index<T> {
+export function makeProxy<T>(parent: Index<T>, path: string, options: ITypeRestOptions<T>): Index<T> {
     // Need to do some overrides with types as the proxy handles many of the fields
     return new Proxy({
         _options: {
-            hooks: options.hooks ?? [],
-            params: options.params ?? {},
+            hooks: options.hooks,
+            params: options.params,
+            pathStyle: options.pathStyle
         } as ITypeRestOptions<T>,
         _parent: parent,
         _path: path,
     } as unknown as Index<T>, proxyHandler) as Index<T>;
 }
 
-function formatPath(path: string) {
-    return path.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
+function formatPath(path: string, pathStyle: ValidPathStyles) {
+    switch (pathStyle) {
+    case "lowerCased":
+        return path.toLowerCase();
+    case "upperCased":
+        return path.toUpperCase();
+    case "dashed":
+        return path.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+    case "snakeCase":
+        return path.replace(/([a-z0-9])([A-Z])/g, "$1_$2").toLowerCase();
+    case "none":
+        return path;
+    default:
+        throw new Error(`Unknown Path Style ${pathStyle}`);
+    }
 }

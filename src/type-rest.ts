@@ -20,7 +20,7 @@ interface IIndexPrivates<T> {
 }
 
 export type Index<T> = Indexed<KeyTypes<T>> & IIndexPrivates<T>;
-
+export type ValidPathStyles = "lowerCased" | "upperCased" | "dashed" | "snakeCase" | "none";
 export type AllowedInitKeys = "mode" | "cache" | "credentials" | "headers" | "redirect" | "referrer";
 // This is a work-around for headers being a stupid type in RequestInit.
 export type ITypeRestParams =  Pick<RequestInit, AllowedInitKeys> & {headers?: Record<string, string>};
@@ -28,6 +28,7 @@ export type ITypeRestParams =  Pick<RequestInit, AllowedInitKeys> & {headers?: R
 export interface ITypeRestOptions<T> {
     hooks: Array<IHookDefinition<T>>;
     params: ITypeRestParams;
+    pathStyle: ValidPathStyles;
 }
 
 export type ITypeRestOptionsInit<T> = Partial<ITypeRestOptions<T>>;
@@ -63,6 +64,10 @@ export function typeRest<T = UntypedTypeRestApi>(path: string, options?: ITypeRe
 
     if (typeof options.hooks === "undefined") {
         options.hooks = [];
+    }
+
+    if (typeof options.pathStyle === "undefined") {
+        options.pathStyle = "snakeCase";
     }
 
     options.params = Object.assign({

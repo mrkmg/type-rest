@@ -1,12 +1,25 @@
 Type Rest
 ============
 
-A simple fetch wrapper made for TypeScript which allows developers to
-create and distribute a typed interface to their APIs.
+A simple fetch wrapper made for TypeScript to either pragmatically
+build paths, requests, and responses for JSON Rest APIS. Developers 
+can create, use, and/or distribute a typed interface to almost any
+JSON based Rest API.
 
 ## Quick Start
 
-First, create an API instance and Spec:
+The best examples can be found in the samples directory of the source tree.
+To run the samples, clone this project, install the dependencies, and run:
+
+```text
+# Run the untyped sample
+npx ts-node samples/untyped/untypedApi.ts
+
+# Run the typed sample
+npx ts-node samples/types/typedApi.ts
+```
+
+Following is a quick example:
 
 api.ts
 ```typescript
@@ -67,6 +80,26 @@ export interface Todo {
 }
 ```
 
+Now you can use that API. Typescript will check the types of all request and response objects.
+
+```typescript
+import {Api} from "./api";
+
+async function testApi() {
+    const authStatus = await Api.authentication.Get();
+    
+    if (!authStatus.authenticated) {
+        await Api.authentication.Post({username: "test", password: "test"});
+        // Due to the hook define, this will add the appropriate token header to all future API calls
+    }
+    
+    const todos = await Api.todos.Get({page: 2}); // List page two
+    const todo = await Api.todos[1].Get(); // Get to-do with ID 1
+    await Api.todos[todo.id].Delete(); // Delete that to-do
+}
+
+```
+
 ## Intended Use
 
 Type Rest is intended to be used to provide a simple to use interface
@@ -91,28 +124,9 @@ errors.
 
 Once you have a defined API and exported an instance of Type Rest with
 your API definition, you or other developers, will be able to call 
-endpoints to your api.
+endpoints to your api. Enjoy code-completion and typescript warnings
+and errors about the request objects and usage of the response objects.
 
-From the example above:
-
-test.ts
-```typescript
-import {Api} from "./api";
-
-async function testApi() {
-    const authStatus = await Api.authentication.Get();
-    
-    if (!authStatus.authenticated) {
-        await Api.authentication.Post({username: "test", password: "test"});
-        // Due to the hook define, this will add the appropriate token header to all future API calls
-    }
-    
-    const todos = await Api.todos.Get({page: 2}); // List page two
-    const todo = await Api.todos[1].Get(); // Get to-do with ID 1
-    await Api.todos[1].Delete(); // Delete to-do with ID 1
-}
-
-```
 
 ## Building the API Definition
 
@@ -270,6 +284,48 @@ export const AwesomeApi = typeRest<IAwesomeApiRoutes>("https://awesome-app/api/v
 Now, anywhere else in your app, you can use the "AwesomeApi" to make 
 requests to your api!
 
+## Options
+
+There are two different sets of options, global defaults, and instance
+specific options.
+
+### Global Options
+
+There is only one "global" option, which allows you to override or set
+the fetch implementation for all type-rest instances.
+
+```typescript
+import {TypeRestDefaults} from "type-rest";
+
+TypeRestDefaults.fetchImplementation = fetch; 
+```
+
+TypeRest will attempt to use `window.fetch`, `global.fetch`, then to
+import `node-fetch`. If none of those are available, and a custom
+implementation is not set, then an error will throw on every request.
+
+### Instance Options
+
+The TypeRest initializater takes in an options argument with the following
+signature.
+
+```typescript
+interface ITypeRestOptions<T> {
+    hooks: Array<IHookDefinition<T>>;
+    params: ITypeRestParams;
+    pathStyle: ValidPathStyles;
+}
+```
+
+See the next section for details on `hooks`.
+
+`params` are any of the following: `"mode", "cache", "credentials", "headers", "redirect", "referrer"`
+and are passed directly into fetch.
+
+`pathStyle` can be one of the following: `"lowerCased", "upperCased", "dashed", "snakeCase", "none"`.
+The default style is "dashed". Look at `test/pathing.test.ts` to see
+examples.
+
 ## Hooks
 
 Built into type rest is the ability to hook into requests to modify
@@ -357,7 +413,7 @@ to the route and its child-routes, regardless of the "path" property.
 
 ## License
 
-Copyright 2019 Kevin Gravier
+Copyright 2019-2021 Kevin Gravier
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files 

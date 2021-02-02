@@ -1,76 +1,25 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {api} from "./api";
-import {ICustomerPostBody} from "./api/routes/customer";
-import {IOrderPostBody} from "./api/routes/order";
 
 async function main() {
-    // Check if logged in
-    const loggedIn = await api.auth.Get();
+    const allUsers = await api.users.Get();
+    console.log(allUsers);
+    const singleUserByUsername = await api.users.Get({username: "Bret"});
+    console.log(singleUserByUsername);
+    const singleUserById = await api.users[1].Get();
+    console.log(singleUserById);
+    const createdUser = await api.users.Post({name: "test", username: "test", email: "test", phone: "1234", website: "test", address: null, company: null});
+    console.log(createdUser);
+    const patchedUser = await api.users[singleUserById.id].Patch({username: "new"});
+    console.log(patchedUser);
 
-    if (!loggedIn) {
-        // Login
-        const authResult = await api.auth.Post({username: "test", password: "test"});
+    const allCommentsForUser = await api.users[1].comments.Get();
+    console.log(allCommentsForUser);
 
-        if (authResult.valid) {
-            api._options.params.headers.token = authResult.jwt;
-        } else {
-            alert("Failed to login!");
-        }
-    }
-    ///// Customers /////
-
-    // List Customers
-    const customers = await api.customer.Get({sort: ["firstName"]});
-
-    // Create Customer
-    const customerData: ICustomerPostBody = {
-        email: "joe.dirt@domain.com",
-        firstName: "Joe",
-        lastName: "Dirt",
-        phoneNumber: "(734) 775 3164",
-    };
-    await api.customer.Post(customerData);
-
-    // List orders for a customer
-    const customerOrders = await api.customer[1].orders.Get({});
-
-    // Get a Customer
-    const customer = await api.customer[10].Get();
-
-    // Update a Customer
-    customer.firstName = "NewName";
-    await api.customer[10].Patch(customer);
-
-    // Delete a Customer
-    await api.customer[10].Delete();
-
-    ////// Orders /////
-
-    // List Orders
-    const orders = await api.order.Get({limit: 10});
-
-    // Create an order
-    const orderData: IOrderPostBody = {
-        customerId: customer.id,
-        date: "2000-01-01",
-        totalAmount: 100,
-    };
-
-    await api.order.Post(orderData);
-
-    // Get an order (without customer)
-    const order = await api.order[10].Get();
-
-    // Get an order (with customer)
-    const orderWithCustomer = await api.order[10].Get({withCustomer: true});
-
-    // Update an order
-    order.totalAmount = 120;
-    await api.order[order.id].Patch(order);
-
-    // Delete an order
-    await api.order[order.id].Delete();
-
-    // Logout
-    await api.auth.Delete();
+    const singleAlbum = await api.albums[1].Get();
+    const photosInAlbum = await api.albums[singleAlbum.id].photos.Get();
+    console.log(singleAlbum, photosInAlbum);
+    const modifiedPhoto = await api.photos[photosInAlbum[0].id].Patch({title: "test"});
+    console.log(modifiedPhoto);
 }
+
+main().catch(e => console.error(e));

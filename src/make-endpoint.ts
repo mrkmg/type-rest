@@ -25,11 +25,11 @@ export function makeEndpoint<T>(params: IEndPointParams<T>): (...args: unknown[]
 
 function withoutBodyFunc<T>(params: IEndPointParams<T>) {
     const func = async (...args: unknown[]) => {
-        return runRequest(params, null, args.length === 1 ? args[0] : null, false);
+        return runRequest(params, null, args.length >= 1 ? args[0] : null, false);
     };
 
     func.raw = (...args: unknown[]) => {
-        return runRequest(params, null, args.length === 1 ? args[0] : null, true);
+        return runRequest(params, null, args.length >= 1 ? args[0] : null, true);
     };
 
     return func;
@@ -37,11 +37,11 @@ function withoutBodyFunc<T>(params: IEndPointParams<T>) {
 
 function withBodyFunc<T>(params: IEndPointParams<T>) {
     const func = async (...args: unknown[]) => {
-        return runRequest(params, args.length >= 1 ? args[0] : null, args.length === 2 ? args[1] : null, false);
+        return runRequest(params, args.length >= 1 ? args[0] : null, args.length >= 2 ? args[1] : null, false);
     };
 
     func.raw = (...args: unknown[]) => {
-        return runRequest(params, args.length >= 1 ? args[0] : null, args.length === 2 ? args[1] : null, true);
+        return runRequest(params, args.length >= 1 ? args[0] : null, args.length >= 2 ? args[1] : null, true);
     };
 
     return func;

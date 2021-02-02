@@ -1,10 +1,10 @@
 Type Rest
 =========
 
-A simple fetch wrapper made for TypeScript to pragmatically build paths,
-requests, and responses a JSON Rest API. Developers can use, and/or
-distribute a typed interface to allow for IDE code completion on their
-APIs with only a definition.
+A simple fetch wrapper made with for TypeScript to pragmatically build
+paths, requests, and responses a JSON Rest API. Developers can use,
+and/or distribute a typed interface to allow for IDE code completion on
+their APIs with only a definition.
 
 - [Quick Start](#quick-start)
 - [Examples](#examples)
@@ -51,6 +51,7 @@ const loginHook: IHook = {
      },
      method: "POST",
      route: "/authentication/",
+     type: "post",
  };
 
 const logoutHook: IHook = {
@@ -59,6 +60,7 @@ const logoutHook: IHook = {
     },
     method: "DELETE",
     route: "/authentication/",
+    type: "post",
 };
 
 export const Api = typeRest<ApiRoute>("https://some-url/api", {
@@ -70,7 +72,7 @@ export const Api = typeRest<ApiRoute>("https://some-url/api", {
 
 export interface ApiRoute {
     authentication: AuthenticationRoute;
-    todos: TodosRoute;
+    todos: TodosRoute & IndexedTodosRoute;
 }
 
 export interface AuthenticationRoute {
@@ -81,18 +83,22 @@ export interface AuthenticationRoute {
 
 export interface TodosRoute {
     Get: WithQuery<{page: number, limit?: number}, Todo[]>;
-    Post: WithBody<Pick<Todo, Exclude<keyof Todo, "id" | "completed">>, Todo>;
+    Post: WithBody<Omit<Todo, "id" | "completed">>;
     [todoId: number]: TodoRoute;
+}
+
+export interface IndexedTodosRoute {
+    [todo: string]: TodoRoute;
 }
 
 export interface TodoRoute {
     Get: WithNone<Todo>;
-    Patch: WithBody<Partial<Todo>, Todo>;
+    Patch: WithBody<Partial<Omit<Todo, "id">>>;
     Delete: WithNone<void>;
 }
 
 export interface Todo {
-    id: number;
+    id: string;
     date: string;
     title: string;
     completed: boolean;
@@ -142,35 +148,35 @@ npx ts-node samples/types/typedApi.ts
 
 Type Rest is intended to be used to provide a simple to use interface to
 a well defined JSON-based API. All endpoints, query params, and body
-params can be typed out via TypeScript and the provided types, and then
-passed to an instance of type-rest which will then convert those typed
-routes into callable functions.
+objects can be defined through the use TypeScript and the provided
+types. That declaration is passed to an instance of Type Rest which
+translates those defined routes to callable functions.
 
-Type Rest also provides a hook system to trigger actions before and
-after a request. The hooks can modify requests as well as trigger
-side-effects with the response.
+Type Rest is opinioned to JSON based Rest centric APIs. All request
+bodies and responses are expected to be in json. The use of HTTP Verbs
+like GET, POST, etc are central to making sure the usage makes sense.
+Paths by default are *converted-to-dash-case*.
 
-In order to provide a typed interface to your api, you must first build
-your API definition. This is done by using the included helper
-definitions.
+Type Rest also provides a hook system to trigger actions before or after
+a request. These hooks can modify the requests, the responses, or
+trigger side effects.
 
-Under the hood, Type Rest uses fetch with one major difference. All
-non-successful calls are rejected. This includes 4xx and 5xx server
-errors.
+Under the hood, Type Rest uses fetch with one major difference. **All
+non-successful calls are rejected.** This includes 4xx and 5xx server
+errors. This is a change from normal fetch usage, and was a design
+decision made by me. In my opinion, a 4xx or 5xx should never occur in a
+well-designed API *except* in rare exceptional cases.
 
 ## How to Use
 
-Once you have a defined API and exported an instance of Type Rest with
-your API definition, you or other developers, will be able to call
-endpoints to your api. Enjoy code-completion and typescript warnings and
-errors about the request objects and usage of the response objects.
-
+To provide a typed interface to for an api, first build an API
+definition, then create an instance of Type Rest using those types.
 
 ## Building the API Definition
 
 - [Declaring your api](#declaring-your-api)
-  - [Create a Route](#create-a-route)
   - [Create a Model](#create-a-model)
+  - [Create a Route](#create-a-route)
   - [Create Advanced Route](#create-advanced-route)
   - [Bringing the Routes Together](#bringing-the-routes-together)
 - [Creating the Instance](#creating-the-instance)
@@ -180,52 +186,50 @@ and output types of the restful calls. Using the powerful type system
 built into TypeScript combined with the flexibility of Type Rest, almost
 any situation can be accounted for.
 
-There 4 concepts to creating your Typed API. First is the routes, second
-are the end points, third are the input and output data, and finally the
-instance. Routes are paths of your api, end points are the HTTP verbs,
-data is the request and response data, and the instance is what brings
-all those together into a usable api.
+There are 4 concepts to creating your Typed API. First is the data
+models, second is the routes and end points, third is the input and
+output data, and finally creating the instance. Routes are paths of your
+api, end points are the HTTP verbs, data is the request and response
+data, and the instance is what brings all those together into a usable
+api.
 
 ### Declaring your api
 
-Lets take the following API as an example.
+Take the following API as an example.
 
 ```text
 ROOT https://awesome-app/api/v1/
 
-Get authentication status
 GET /authentication
-
-Authenticate with the api
 POST /authentication
-
-Remove authentication
 DELETE /authentication
-
-Get a list of todos
 GET /todos
-
-Get a single todo
 GET /todos/{id}
-
-Create a todo
 POST /todos
-
-Update a todo
 PATCH /todos/{id}
-
-Delete a todo
 DELETE /todos/{id}
+```
+
+
+#### Create a Model
+
+Assuming the following is a correct representation of a Todo object.
+
+todo.ts
+
+```typescript
+export interface ITodo {
+    id: string;
+    date: string;
+    title: string;
+    completed: boolean;
+}
 ```
 
 #### Create a Route
 
-Using the list of end points above, we can create all the definitions we
-need. Looking at the api, we have two first-level routes:
-"authentication" and "todos". Lets start with the authentication route.
 Within authentication, we have 3 end-points, "GET, POST, and DELETE". We
-can directly type those.
-
+can directly type those as they are simple, single use data definitions.
 
 authentication-route.ts
 
@@ -239,25 +243,13 @@ export interface IAuthenticationRoute {
 }
 ```
 
-#### Create a Model
-
-Next, we can start typing out the "todos" route. First thing to do is to
-declare a Todo.
-
-todo.ts
-
-```typescript
-export interface ITodo {
-    id: number;
-    date: string;
-    title: string;
-    completed: boolean;
-}
-```
-
 #### Create Advanced Route
 
-After we have the Todo interface, we will need to declare the route.
+The todo routes are a bit more complicated. There is a "GET" and a
+"POST" on /todo, but also any number of possible /todo/{id} routes. For
+this, TypeScript's indexer syntax can be useful.
+
+Define the simple "GET" and "POST" as it's own route.
 
 todos-route.ts
 
@@ -271,12 +263,10 @@ export interface ITodosRoute {
 }
 ```
 
-Here we see the TypeScript Utility Type `Omit`. One of the most powerful
-features of type-rest is the use of TypeScript types and its Utility
-Types.
-
-We are still missing the routes which work on a single todo. Let's
-declare that route separately first.
+Define the "GET","PATCH", and "DELETE" in its own type. Use an indexing
+type to define the variability of the path. Only `string` or `number`
+can be used as an indexing type *(this is a limitation of Type
+Script/Javascript)*.
 
 todo-route.ts
 
@@ -284,26 +274,20 @@ todo-route.ts
 import {WithBody, WithNone} from "type-rest";
 import {ITodo} from "./todo";
 
-export interface IIndexedTodoRoute {
-    [id: string]: ITodoRoute;
-}
-
 export interface ITodoRoute {
     Get: WithNone<ITodo>;
     Patch: WithBody<Partial<ITodo>, ITodo>;
     Delete: WithNone<void>;
 }
+
+export interface IIndexedTodoRoute {
+    [id: string]: ITodoRoute;
+}
 ```
 
 #### Bringing the Routes Together
 
-Now that we have that route, we can modify our "TodosRoute" to include
-it. Seeing as the route is variable to the id of the Todo, we can use
-the "index" property in typescript.
-
-Now, all of our routes are defined. We just need to bring it all
-together into a single "root" route which defines the entire API.
-
+Put all the routes together and define the root of your API.
 
 routes.ts
 
@@ -320,9 +304,9 @@ export interface IAwesomeApiRoutes {
 
 ### Creating the instance
 
-We have the entire API declared and want to be actually use it in our
-application. Pass in your API declaration as the type parameter to the
-type-rest initializer.
+The entire API is defined and next is to actually use i. Pass in the API
+declaration as the type parameter to the type-rest initializer. This
+tells TypeScript that the instance of Type Rest follows that definition.
 
 awesome-api.ts
 
@@ -352,8 +336,8 @@ import {TypeRestDefaults} from "type-rest";
 TypeRestDefaults.fetchImplementation = fetch; 
 ```
 
-TypeRest will attempt to use `window.fetch`, `global.fetch`, then to
-import `node-fetch`. If none of those are available and a custom
+TypeRest will attempt to use `window.fetch`, `global.fetch`, and then to
+import `node-fetch`. If none of those are available, and a custom
 implementation is not set, an error will throw on every request.
 
 ### Instance Options
@@ -399,11 +383,11 @@ await api.subPath3.Get(); // will use none
 ### Hooks
 
 Built into type rest is the ability to hook into requests to modify the
-request or response or trigger side effects. The primary purpose of the
-hooks is to handle authentication tokens, headers, caching, etc. Many
-APIs require a token to be sent with every request. This token can
-either be given to the developer, or returned as part of an
-authentication request.
+request data, response object, or trigger side effects. The primary
+purpose of the hooks is to handle authentication tokens, headers,
+caching, etc. Many APIs require a token to be sent with every request.
+This token can either be given to the developer, or returned as part of
+an authentication request.
 
 In the above example, we can see that the authentication result returns
 a token. If we were required to pass this token in all future requests,
@@ -460,9 +444,9 @@ export const AwesomeApi = typeRest<IAwesomeApiRoutes>("https://awesome-app/api/v
 });
 ```
 
-There are two separate hooks, a login and logout hook. The login
-hook will be executed after a "POST" call to the /authentication/ route.
-The logout hook will only be executed after a "DELETE" call the
+There are two separate hooks, a login and logout hook. The login hook
+will be executed after a "POST" call to the /authentication/ route. The
+logout hook will only be executed after a "DELETE" call the
 /authentication/ route.
 
 #### Adding hooks at runtime
@@ -484,6 +468,43 @@ AwesomeApi._addHook(logoutHook);
 Important: If `_addHook` is called from a sub-path, the hook will only
 apply to the route and its child-routes, regardless of the "path"
 property.
+
+## Possible End Points
+
+A complete list of all valid endpoint definitions recognized by Type
+Rest. Invalid definitions may be used, but the result it not always
+determinate.
+
+```typescript
+import {
+    WithNone, WithQuery, WithBody, WithBodyAndQuery, WithOptionalQuery,
+    WithBodyAndOptionalQuery, WithOptionalBodyAndOptionalQuery} from "type-rest";
+ 
+interface AllValidEnpoints {
+    Delete: WithNone<ReturnDefinition>;
+    Delete: WithQuery<QueryDefinition, ReturnDefinition>;
+    Delete: WithOptionalQuery<QueryDefinition, ReturnDefinition>;
+    Get: WithNone<ReturnDefinition>;
+    Get: WithQuery<QueryDefinition, ReturnDefinition>;
+    Get: WithOptionalQuery<QueryDefinition, ReturnDefinition>;
+    Patch: WithNone<ReturnDefinition>;
+    Patch: WithBody<BodyDefinition, ReturnDefinition>;
+    Patch: WithBodyAndQuery<BodyDefinition, QueryDefinition, ReturnDefinition>;
+    Patch: WithBodyAndOptionalQuery<BodyDefinition, QueryDefinition, ReturnDefinition>;
+    Patch: WithOptionalBodyAndOptionalQuery<BodyDefinition, QueryDefinition, ReturnDefinition>;
+    Post: WithNone<ReturnDefinition>;
+    Post: WithBody<BodyDefinition, ReturnDefinition>;
+    Post: WithBodyAndQuery<BodyDefinition, QueryDefinition, ReturnDefinition>;
+    Post: WithBodyAndOptionalQuery<BodyDefinition, QueryDefinition, ReturnDefinition>;
+    Post: WithOptionalBodyAndOptionalQuery<BodyDefinition, QueryDefinition, ReturnDefinition>;
+    Put: WithNone<ReturnDefinition>;
+    Put: WithBody<BodyDefinition, ReturnDefinition>;
+    Put: WithBodyAndQuery<BodyDefinition, QueryDefinition, ReturnDefinition>;
+    Put: WithBodyAndOptionalQuery<BodyDefinition, QueryDefinition, ReturnDefinition>;
+    Put: WithOptionalBodyAndOptionalQuery<BodyDefinition, QueryDefinition, ReturnDefinition>;
+    
+}
+```
 
 ## License
 

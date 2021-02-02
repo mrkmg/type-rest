@@ -4,13 +4,17 @@ export type WithQuery<TQuery, TResponse> = ((query: TQuery) => Promise<TResponse
 export type WithBodyAndQuery<TBody, TQuery, TResponse> =
     ((body: TBody, query: TQuery) => Promise<TResponse>) & { raw: WithBodyAndQueryRaw<TBody, TQuery> };
 
+export type WithOptionalQuery<TQuery, TResponse> = WithNone<TResponse> & WithQuery<TQuery, TResponse>;
+export type WithBodyAndOptionalQuery<TBody, TQuery, TResponse> = WithBody<TBody, TResponse> & WithBodyAndQuery<TBody, TQuery, TResponse>;
+export type WithOptionalBodyAndOptionalQuery<TBody, TQuery, TResponse> = WithNone<TResponse> & WithBody<TBody, TResponse> & WithBodyAndQuery<TBody, TQuery, TResponse>;
+
 export type WithNoneRaw = () => Promise<Response>;
 export type WithBodyRaw<TBody> = (body: TBody) => Promise<Response>;
 export type WithQueryRaw<TQuery> = (query: TQuery) => Promise<Response>;
 export type WithBodyAndQueryRaw<TBody, TQuery> = (body: TBody, query: TQuery) => Promise<Response>;
 
-export type DeleteRoute = WithNone<unknown> & WithQuery<unknown, unknown>;
-export type GetRoute = WithNone<unknown> & WithQuery<unknown, unknown>;
-export type PostRoute = WithBody<unknown, unknown> & WithBodyAndQuery<unknown, unknown, unknown>;
-export type PatchRoute = WithBody<unknown, unknown> & WithBodyAndQuery<unknown, unknown, unknown>;
-export type PutRoute =  WithBody<unknown, unknown> & WithBodyAndQuery<unknown, unknown, unknown>;
+export type DeleteRoute<TQuery = unknown, TResponse = unknown> = WithOptionalQuery<TQuery, TResponse>;
+export type GetRoute<TQuery = unknown, TResponse = unknown> = WithOptionalQuery<TQuery, TResponse>;
+export type PostRoute<TBody = unknown, TQuery = unknown, TResponse = unknown> = WithOptionalBodyAndOptionalQuery<TBody, TQuery, TResponse>;
+export type PatchRoute<TBody = unknown, TQuery = unknown, TResponse = unknown> = WithOptionalBodyAndOptionalQuery<TBody, TQuery, TResponse>;
+export type PutRoute<TBody = unknown, TQuery = unknown, TResponse = unknown> = WithOptionalBodyAndOptionalQuery<TBody, TQuery, TResponse>;

@@ -1,7 +1,7 @@
-import {WithBody, WithNone, WithQuery} from "../../../../src";
+import {Merge, WithBody, WithNone, WithQuery} from "../../../../src";
 import {Comment} from "../../entities/comment";
 
-export type CommentsRoute = CommentsStatic & CommentsIndexed;
+export type CommentsRoute = Merge<CommentsStatic, CommentsIndexed>;
 
 export interface CommentsStatic {
     Get: WithQuery<CommentsListQuery, Comment[]> & WithNone<Comment[]>;

@@ -1,11 +1,11 @@
-import {WithBody, WithNone, WithQuery} from "../../../../src";
+import {Merge, WithBody, WithNone, WithQuery} from "../../../../src";
 import {User} from "../../entities/user";
 import {CommentsStatic} from "./comments.route";
 import {PostsStatic} from "./posts.route";
 import {AlbumsStatic} from "./albums.route";
 import {PhotosStatic} from "./photos.route";
 
-export type UsersRoute = UsersStatic & UsersIndexed;
+export type UsersRoute = Merge<UsersStatic, UsersIndexed>;
 
 export interface UsersStatic {
     Get: WithQuery<UsersListQuery, User[]> & WithNone<User[]>;

@@ -1,4 +1,4 @@
-import fetch = require("jest-fetch-mock");
+import fetch from "jest-fetch-mock";
 import {typeRest, TypeRestDefaults} from "../src";
 
 describe("Custom Initialization", () => {

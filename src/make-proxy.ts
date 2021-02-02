@@ -51,7 +51,12 @@ function getHandler<T>(target: Index<T>, name: string, current: Index<T>) {
             return target[name];
         }
 
-        proxy = makeProxy(current, name, {hooks: [], params: {headers: {}}, pathStyle: current._options.pathStyle});
+        proxy = makeProxy(current, name, {
+            hooks: [],
+            params: {headers: {}},
+            pathStyle: current._options.pathStyle,
+            encoder: Object.assign({}, current._options.encoder)
+        });
         target[name] = proxy;
         return proxy;
 
@@ -63,11 +68,7 @@ const proxyHandler = {get: getHandler};
 export function makeProxy<T>(parent: Index<T>, path: string, options: ITypeRestOptions<T>): Index<T> {
     // Need to do some overrides with types as the proxy handles many of the fields
     return new Proxy({
-        _options: {
-            hooks: options.hooks,
-            params: options.params,
-            pathStyle: options.pathStyle
-        } as ITypeRestOptions<T>,
+        _options: Object.assign({}, options),
         _parent: parent,
         _path: path,
     } as unknown as Index<T>, proxyHandler) as Index<T>;

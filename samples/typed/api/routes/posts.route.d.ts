@@ -1,8 +1,9 @@
-import {WithBody, WithNone, WithQuery} from "../../../../src";
+import {Merge, WithBody, WithNone, WithQuery} from "../../../../src";
 import {Post} from "../../entities/post";
 import {CommentsStatic} from "./comments.route";
+import {PhotosStatic} from "./photos.route";
 
-export type PostsRoute = PostsStatic & PostsIndexed;
+export type PostsRoute = Merge<PostsStatic, PostsIndexed>;
 
 export interface PostsStatic {
     Get: WithQuery<PostListQuery, Post[]> & WithNone<Post[]>;

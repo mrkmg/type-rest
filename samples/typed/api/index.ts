@@ -13,4 +13,17 @@ export interface IApi {
     users: UsersRoute;
 }
 
-export const api = typeRest<IApi>("https://jsonplaceholder.typicode.com");
+export const api = typeRest<IApi>("https://jsonplaceholder.typicode.com", {
+    hooks: [
+        {
+            type: "pre", path: "/users/", method: "GET", hook: event => {
+                console.log(`Attempting to retrieve all users with: ${JSON.stringify(event.requestQuery)}`);
+            }
+        },
+        {
+            type: "post", hook: event => {
+                console.log(`Ran a ${event.method} request on ${event.path}`);
+            }
+        }
+    ]
+});

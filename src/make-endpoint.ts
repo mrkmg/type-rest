@@ -69,7 +69,7 @@ async function runRequest<T>(params: IEndPointParams<T>, body: unknown, query: u
     }
 
     if (rawResponse.ok) {
-        const response = await rawResponse.json();
+        const response = await preHookEvent.options.encoder.responseDecoder(rawResponse);
         const postHookEvent = {
             ...preHookEvent,
             response,

@@ -1,7 +1,7 @@
-import {WithBody, WithNone, WithQuery} from "../../../../src";
+import {Merge, WithBody, WithNone, WithQuery} from "../../../../src";
 import {Photo} from "../../entities/photo";
 
-export type PhotosRoute = PhotosStatic & PhotosIndexed;
+export type PhotosRoute = Merge<PhotosStatic, PhotosIndexed>;
 
 export interface PhotosStatic {
     Get: WithQuery<PhotosListQuery, Photo[]> & WithNone<Photo[]>;

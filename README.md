@@ -42,7 +42,7 @@ Quick typed example:
 api.ts
 
 ```typescript
-import {typeRest, WithNone, WithBody, WithQuery, IHook} from "type-rest";
+import {typeRest, WithNone, WithBody, WithQuery, IHook, Merge} from "type-rest";
 
 const loginHook: IHook = {
      hook: (ev) => {
@@ -72,7 +72,7 @@ export const Api = typeRest<ApiRoute>("https://some-url/api", {
 
 export interface ApiRoute {
     authentication: AuthenticationRoute;
-    todos: TodosRoute & IndexedTodosRoute;
+    todos: Merge<TodosRoute, IndexedTodosRoute>;
 }
 
 export interface AuthenticationRoute {
@@ -84,7 +84,6 @@ export interface AuthenticationRoute {
 export interface TodosRoute {
     Get: WithQuery<{page: number, limit?: number}, Todo[]>;
     Post: WithBody<Omit<Todo, "id" | "completed">>;
-    [todoId: number]: TodoRoute;
 }
 
 export interface IndexedTodosRoute {
@@ -146,13 +145,13 @@ npx ts-node samples/types/typedApi.ts
 
 ## Description
 
-Type Rest is intended to be used to provide a simple to use interface to
-a well defined JSON-based API. All endpoints, query params, and body
-objects can be defined through the use TypeScript and the provided
-types. That declaration is passed to an instance of Type Rest which
-translates those defined routes to callable functions.
+Type Rest is provides a simple-to-use interface to a well-defined
+JSON-based API. All endpoints, query params, and body objects can be
+defined through the use TypeScript and the provided types. That
+definition is passed to an instance of Type Rest which translates those
+defined routes to callable functions.
 
-Type Rest is opinioned to JSON based Rest centric APIs. All request
+Type Rest is opinionated to JSON based Rest centric APIs. All request
 bodies and responses are expected to be in json. The use of HTTP Verbs
 like GET, POST, etc are central to making sure the usage makes sense.
 Paths by default are *converted-to-dash-case*.
@@ -292,20 +291,21 @@ Put all the routes together and define the root of your API.
 routes.ts
 
 ```typescript
+import {Merge} from "type-rest";
 import {IAuthenticationRoute} from "./authentication-route";
 import {ITodosRoute} from "./todos-route";
 import {IIndexedTodoRoute} from "./todo-route"
 
 export interface IAwesomeApiRoutes {
     authentication: IAuthenticationRoute;
-    todos: ITodosRoute & IIndexedTodoRoute;
+    todos: Merge<ITodosRoute, IIndexedTodoRoute>;
 }
 ```
 
 ### Creating the instance
 
 The entire API is defined and next is to actually use i. Pass in the API
-declaration as the type parameter to the type-rest initializer. This
+definition as the type parameter to the type-rest initializer. This
 tells TypeScript that the instance of Type Rest follows that definition.
 
 awesome-api.ts

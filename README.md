@@ -168,12 +168,12 @@ errors about the request objects and usage of the response objects.
 
 ## Building the API Definition
 
-- (Declaring your api)[#declaring-your-api]
-  - (Create a Route)[#create-a-route]
-  - (Create a Model)[#create-a-model]
-  - (Create Advanced Route)[#create-advanced-route]
-  - (Bringing the Routes Together)[#bringing-the-routes-together]
-- (Creating the Instance)[#creating-the-instance]
+- [Declaring your api](#declaring-your-api)
+  - [Create a Route](#create-a-route)
+  - [Create a Model](#create-a-model)
+  - [Create Advanced Route](#create-advanced-route)
+  - [Bringing the Routes Together](#bringing-the-routes-together)
+- [Creating the Instance](#creating-the-instance)
 
 One of the core concepts of Type Rest is fully defining all the input
 and output types of the restful calls. Using the powerful type system
@@ -369,7 +369,7 @@ interface ITypeRestOptions {
 }
 ```
 
-`hooks`: see (Hooks)[#hooks]
+`hooks`: see [Hooks](#hooks)
 
 `params`: are any of *"mode", "cache", "credentials", "headers",
 "redirect", or "referrer"* and are passed directly into fetch.

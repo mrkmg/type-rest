@@ -47,6 +47,14 @@ describe("Pathing", () => {
         expect(fetch.mock.calls[0][0]).toBe("https://localhost/TESTTEST01TEST02TEST/");
     });
 
+    it("custom", async () => {
+        const api = typeRest("https://localhost/", {
+            pathStyle: (s) => s.toLowerCase().replace(/test/g, "other")
+        });
+        await api.testTest01Test02test.Get();
+        expect(fetch.mock.calls[0][0]).toBe("https://localhost/otherother01other02other/");
+    });
+
     it("handle numeric keys", async () => {
         const api = typeRest("https://localhost/");
         await api.path[0].Get();

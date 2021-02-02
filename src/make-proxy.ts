@@ -74,6 +74,9 @@ export function makeProxy<T>(parent: Index<T>, path: string, options: ITypeRestO
 }
 
 function formatPath(path: string, pathStyle: ValidPathStyles) {
+    if (typeof pathStyle === "function")
+        return pathStyle(path);
+
     switch (pathStyle) {
     case "lowerCased":
         return path.toLowerCase();

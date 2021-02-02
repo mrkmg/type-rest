@@ -80,7 +80,8 @@ export interface Todo {
 }
 ```
 
-Now you can use that API. Typescript will check the types of all request and response objects.
+Now you can use that API. Typescript will check the types of all request and 
+response objects.
 
 ```typescript
 import {Api} from "./api";
@@ -194,7 +195,8 @@ export interface IAuthenticationRoute {
 }
 ```
 
-Next, we can start typing out the "todos" route. First thing to do is to type out a Todo.
+Next, we can start typing out the "todos" route. First thing to do is to 
+declare a Todo.
 
 todo.ts
 ```typescript
@@ -206,7 +208,7 @@ export interface ITodo {
 }
 ```
 
-After we have the Todo interface, we will need to type out the route.
+After we have the Todo interface, we will need to declare the route.
 
 todos-route.ts
 ```typescript
@@ -219,11 +221,12 @@ export interface ITodosRoute {
 }
 ```
 
-Here we see an advanced type. Basically what the `Pick<Todo, Exclude<keyof Todo, "id" | "completed">>`
-means is the all the keys of `Todo` except "id" and "completed".
+Here we see an advanced type. Basically what the 
+`Pick<Todo, Exclude<keyof Todo, "id" | "completed">>` means is the all the 
+keys of `Todo` except "id" and "completed".
 
-But we are missing the routes which work on a single todo.
-Lets type that route out separately first.
+We are still missing the routes which work on a single todo. Let's declare that
+route separately first.
 
 todo-route.ts
 ```typescript
@@ -270,7 +273,7 @@ export interface IAwesomeApiRoutes {
 
 ### Creating the instance
 
-We have the entire API typed out, and want to be actually use it in
+We have the entire API declared and want to be actually use it in
 our application. This is very easy:
 
 awesome-api.ts
@@ -301,12 +304,12 @@ TypeRestDefaults.fetchImplementation = fetch;
 ```
 
 TypeRest will attempt to use `window.fetch`, `global.fetch`, then to
-import `node-fetch`. If none of those are available, and a custom
-implementation is not set, then an error will throw on every request.
+import `node-fetch`. If none of those are available and a custom
+implementation is not set, an error will throw on every request.
 
 ### Instance Options
 
-The TypeRest initializater takes in an options argument with the following
+The TypeRest initializer takes in an options argument with the following
 signature.
 
 ```typescript
@@ -319,12 +322,30 @@ interface ITypeRestOptions<T> {
 
 See the next section for details on `hooks`.
 
-`params` are any of the following: `"mode", "cache", "credentials", "headers", "redirect", "referrer"`
-and are passed directly into fetch.
+`params` are any of the following: `"mode", "cache", "credentials", 
+"headers", "redirect", "referrer"` and are passed directly into fetch.
 
-`pathStyle` can be one of the following: `"lowerCased", "upperCased", "dashed", "snakeCase", "none"`.
-The default style is "dashed". Look at `test/pathing.test.ts` to see
-examples.
+`pathStyle` can be one of the following: `"lowerCased", "upperCased", 
+"dashed", "snakeCase", "none"` or a function which takes a path part
+and returns a formatted path part. The default style is "dashed". Look
+at `test/pathing.test.ts` to see examples.
+
+The options are inherited to all paths "below" it unless defined itself, 
+and can be adjusted at any point in the path. For example:
+
+```typescript
+const api = typeRest("http://api.local/", {
+    pathStyle: "none"
+});
+api.subPath1._options.pathStyle = "snakeCase";
+api.subPath2._options.pathStyle = "dashed";
+
+await api.Get(); // will use none
+await api.subPath1.Get(); // will use snakeCase
+await api.subPath2.Get(); // will use dashed
+await api.subPath2.secondLevel.Get(); // will use dashed
+await api.subPath3.Get(); // will use none
+```
 
 ## Hooks
 

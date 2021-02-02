@@ -20,7 +20,7 @@ interface IIndexPrivates<T> {
 }
 
 export type Index<T> = Indexed<KeyTypes<T>> & IIndexPrivates<T>;
-export type ValidPathStyles = "lowerCased" | "upperCased" | "dashed" | "snakeCase" | "none";
+export type ValidPathStyles = "lowerCased" | "upperCased" | "dashed" | "snakeCase" | "none" | ((pathPath: string) => string);
 export type AllowedInitKeys = "mode" | "cache" | "credentials" | "headers" | "redirect" | "referrer";
 // This is a work-around for headers being a stupid type in RequestInit.
 export type ITypeRestParams =  Pick<RequestInit, AllowedInitKeys> & {headers?: Record<string, string>};

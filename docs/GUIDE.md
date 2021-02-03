@@ -89,7 +89,7 @@ import {WithBody, WithQuery} from "type-rest";
 import {ITodo} from "./todo";
 
 export interface ITodosRoute {
-    Get: WithQuery<{page: number, limit?: number}, ITodo[]>;
+    Get: WithQuery<{page?: number, limit: number}, ITodo[]>;
     Post: WithBody<Omit<ITodo, "id" | "completed">>;
 }
 ```
@@ -110,10 +110,6 @@ export interface ITodoRoute {
     Patch: WithBody<Partial<ITodo>, ITodo>;
     Delete: WithNone<void>;
 }
-
-export interface IIndexedTodoRoute {
-    [id: string]: ITodoRoute;
-}
 ```
 
 #### Bringing the Routes Together
@@ -126,11 +122,11 @@ routes.ts
 import {Merge} from "type-rest";
 import {IAuthenticationRoute} from "./authentication-route";
 import {ITodosRoute} from "./todos-route";
-import {IIndexedTodoRoute} from "./todo-route"
+import {ITodoRoute} from "./todo-route"
 
 export interface IAwesomeApiRoutes {
     authentication: IAuthenticationRoute;
-    todos: Merge<ITodosRoute, IIndexedTodoRoute>;
+    todos: Merge<ITodosRoute, { [id: string]: ITodoRoute; }>;
 }
 ```
 
@@ -151,6 +147,12 @@ export const AwesomeApi = typeRest<IAwesomeApiRoutes>("https://awesome-app/api/v
 
 Now you can import `AwesomeApi` and have a pragmatic, code-completion
 friendly way to interact with the Rest API.
+
+```typescript
+import {AwesomeApi} from "./awesome-api.ts"
+
+const todos = await AwesomeApi.todos.Get({limit: 10});
+```
 
 See [Options](OPTIONS.md) for all options. See [Hooks](HOOKS.md) for how
 to define and use hooks.

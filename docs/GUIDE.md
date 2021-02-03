@@ -132,9 +132,10 @@ export interface IAwesomeApiRoutes {
 
 ### Creating the Instance
 
-The entire API is defined and next is to actually use i. Pass in the API
-definition as the type parameter to the type-rest initializer. This
-tells TypeScript that the instance of Type Rest follows that definition.
+Pass in the API definition as the type parameter to the typeRest
+initializer. This tells TypeScript that the instance of Type Rest
+follows that definition, and return a proxy object which allows for the
+calls to made out to fetch using your hooks and options.
 
 awesome-api.ts
 

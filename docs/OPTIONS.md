@@ -39,20 +39,26 @@ interface ITypeRestOptions {
 
 `hooks`: see [Hooks](HOOKS.md)
 
-`params`: are any of *"mode", "cache", "credentials", "headers",
-"redirect", or "referrer"* and are passed directly into fetch.
+`params`: are options which are directly passed into fetch, except you
+can not define *query, body, or method* as those are determined by Type
+Rest upon invocation of an end point.
 
 `pathStyle` can be one of *"lowerCased", "upperCased", "dashed",
 "snakeCase"*, "none" or a function which takes a path part and returns a
 formatted path part. The default style is *"dashed"*. Look at
-`test/pathing.test.ts` to see examples.
+[`test/pathing.test.ts`](test/pathing.test.ts) to see examples.
 
-`encoding` is an object which defines
+`encoding` is an object which defines how request bodies and responses
+will be encoded/decoded, as well as the request's "Content-Type" and "Accept"
+headers.
 
 The options are inherited to all paths "below" it unless defined itself
 and can be adjusted at any point in the path.
 
 ```typescript
+```typescript
+import {typeRest} from "type-rest"; 
+
 const api = typeRest("http://api.local/", {
     pathStyle: "none"
 });
@@ -65,3 +71,4 @@ await api.subPath2.Get(); // will use dashed
 await api.subPath2.secondLevel.Get(); // will use dashed
 await api.subPath3.Get(); // will use none
 ```
+

@@ -34,9 +34,9 @@ export type Index<T> = Indexed<KeyTypes<T>> & IIndexPrivates<T>;
  * or a function which takes in a path part and returns it transformed.
  */
 export type ValidPathStyles = "lowerCased" | "upperCased" | "dashed" | "snakeCase" | "none" | ((pathPath: string) => string);
-export type AllowedInitKeys = "cache" | "credentials" | "headers" | "integrity" | "keepalive" | "mode" | "redirect" | "referrer" | "referrerPolicy" | "window";
+type DisallowedRequestInitKeys = "body" | "query" | "method";
 // This is a work-around for headers being a stupid type in RequestInit.
-export type ITypeRestParams =  Pick<RequestInit, AllowedInitKeys> & {headers?: Record<string, string>};
+export type ITypeRestParams = Omit<RequestInit, DisallowedRequestInitKeys> & {headers?: Record<string, string>};
 interface IRequestEncoder<TRequest = unknown, TResponse = unknown> {
     requestContentType: string;
     requestAcceptType: string;

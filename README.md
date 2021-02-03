@@ -2,9 +2,9 @@ Type Rest
 =========
 
 A simple fetch wrapper made with for TypeScript to pragmatically build
-paths, requests, and responses a JSON Rest API. Developers can use,
-and/or distribute a typed interface to allow for IDE code completion on
-their APIs with only a definition.
+endpoints, requests, and responses a for a Rest API. API Developers can
+use, and/or distribute a typed interface to allow for IDE code
+completion on their APIs inside of TypeScript projects.
 
 - [Quick Start](#quick-start)
 - [Examples](#examples)

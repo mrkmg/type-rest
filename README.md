@@ -130,17 +130,15 @@ npx ts-node samples/types/typedApi.ts
 
 ## Description
 
-Type Rest is provides a simple-to-use interface to a well-defined
-JSON-based API. All endpoints, query params, and body objects can be
-defined through the use TypeScript and the provided types. That
-definition is passed to an instance of Type Rest which translates those
-defined routes to callable functions.
+Type Rest is provides a simple-to-use interface to a well-defined API.
+All endpoints, query params, body objects, and responses can be defined
+through the use TypeScript and the provided type system. Those
+definitions can be used to an instance of Type Rest which translates
+those defined routes to callable functions.
 
-Type Rest is by default opinionated to JSON based Rest centric APIs. All
-request bodies and responses are expected to be in json. The use of HTTP
-Verbs like GET, POST, etc are central to making sure the usage makes
-sense. Paths by default are *converted-to-dash-case*. All the encoding
-can be altered through configuration changes.
+Type Rest is by default opinionated to JSON based bodies and responses,
+using HTTP Verbs, and dashes in the URLs. All these can be configured
+though for differing API configurations with instance-specific options.
 
 Type Rest also provides a hook system to trigger actions before or after
 a request. These hooks can modify the requests, the responses, or

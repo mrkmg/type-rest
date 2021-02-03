@@ -1,6 +1,6 @@
-import {IHookDefinition} from "./hooks";
 import {makeProxy} from "./make-proxy";
 import {ITypeRestEndpoints, UntypedTypeRestApi} from "./untyped";
+import {IHookDefinition} from "./types";
 
 type KeyTypes<T> = Exclude<T, IIndexPrivates<T> & ITypeRestEndpoints>;
 
@@ -15,7 +15,7 @@ interface IIndexPrivates<T> {
     readonly _path: string;
     readonly _fullPath: string;
     readonly _uri: string;
-    readonly _fullOptions: ITypeRestOptions<T>;
+    readonly _fullOptions: Readonly<ITypeRestOptions<T>>;
     readonly _addHook: (hook: IHookDefinition<T>) => void;
 }
 
@@ -34,7 +34,7 @@ export type Index<T> = Indexed<KeyTypes<T>> & IIndexPrivates<T>;
  * or a function which takes in a path part and returns it transformed.
  */
 export type ValidPathStyles = "lowerCased" | "upperCased" | "dashed" | "snakeCase" | "none" | ((pathPath: string) => string);
-export type AllowedInitKeys = "mode" | "cache" | "credentials" | "headers" | "redirect" | "referrer";
+export type AllowedInitKeys = "cache" | "credentials" | "headers" | "integrity" | "keepalive" | "mode" | "redirect" | "referrer" | "referrerPolicy" | "window";
 // This is a work-around for headers being a stupid type in RequestInit.
 export type ITypeRestParams =  Pick<RequestInit, AllowedInitKeys> & {headers?: Record<string, string>};
 interface IRequestEncoder<TRequest = unknown, TResponse = unknown> {
@@ -44,16 +44,11 @@ interface IRequestEncoder<TRequest = unknown, TResponse = unknown> {
     responseDecoder: (response: Response) => Promise<TResponse>;
 }
 
-/**
- * Options for initializing Type Rest
- *
- * @property hooks A list of hooks IHookDefinition
- */
 export interface ITypeRestOptions<T> {
     hooks: Array<IHookDefinition<T>>;
     params: ITypeRestParams;
     pathStyle: ValidPathStyles;
-    encoder: IRequestEncoder;
+    encoder: Readonly<IRequestEncoder>;
 }
 
 export type ITypeRestOptionsInit<T> = Partial<ITypeRestOptions<T>>;

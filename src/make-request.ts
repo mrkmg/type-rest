@@ -1,6 +1,6 @@
 import {buildQueryString} from "./build-query-string";
-import {IPreHookEvent} from "./hooks";
 import {TypeRestDefaults} from "./type-rest";
+import {IPreHookEvent} from "./types";
 
 export async function makeRequest<T>(preHookEvent: IPreHookEvent<T>): Promise<Response> {
     const params: RequestInit = Object.assign({}, preHookEvent.options.params);

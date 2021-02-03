@@ -1,6 +1,7 @@
 import {runPostHooks, runPreHooks} from "./hooks";
 import {makeRequest} from "./make-request";
 import {Index} from "./type-rest";
+import {IHookDefinition} from "./types";
 
 export type ValidEndpoint = "DELETE" | "GET" | "POST" | "PATCH" | "PUT";
 
@@ -32,6 +33,14 @@ function withoutBodyFunc<T>(params: IEndPointParams<T>) {
         return runRequest(params, null, args.length >= 1 ? args[0] : null, true);
     };
 
+    func._addHook = (hook: Omit<IHookDefinition<T>, "path" | "method">) => {
+        const fullHook: IHookDefinition<T> = Object.assign({}, hook, {
+            path: params.current._fullPath,
+            method: params.type
+        });
+        params.current._addHook(fullHook);
+    };
+
     return func;
 }
 
@@ -42,6 +51,14 @@ function withBodyFunc<T>(params: IEndPointParams<T>) {
 
     func.raw = (...args: unknown[]) => {
         return runRequest(params, args.length >= 1 ? args[0] : null, args.length >= 2 ? args[1] : null, true);
+    };
+
+    func._addHook = (hook: Omit<IHookDefinition<T>, "path" | "method">) => {
+        const fullHook: IHookDefinition<T> = Object.assign({}, hook, {
+            path: params.current._fullPath,
+            method: params.type
+        });
+        params.current._addHook(fullHook);
     };
 
     return func;
@@ -72,6 +89,7 @@ async function runRequest<T>(params: IEndPointParams<T>, body: unknown, query: u
         const response = await preHookEvent.options.encoder.responseDecoder(rawResponse);
         const postHookEvent = {
             ...preHookEvent,
+            rawResponse: rawResponse,
             response,
         };
         await runPostHooks(params, postHookEvent);
@@ -79,7 +97,8 @@ async function runRequest<T>(params: IEndPointParams<T>, body: unknown, query: u
     } else {
         const postHookEvent = {
             ...preHookEvent,
-            response: rawResponse,
+            rawResponse: rawResponse,
+            response: null
         };
         await runPostHooks(params, postHookEvent);
         return Promise.reject(rawResponse);

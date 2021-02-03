@@ -2,6 +2,18 @@ import mergeOptions = require("merge-options");
 import {IHookDefinition, Index, ITypeRestOptions, ValidPathStyles} from "./";
 import {IEndPointParams, makeEndpoint, ValidEndpoint} from "./make-endpoint";
 
+function getFullOptions<T>(start: Index<T>) {
+    const options = [start._options];
+    let current = start;
+    while (current._parent) {
+        current = current._parent;
+        options.unshift(current._options);
+    }
+    return mergeOptions.apply({
+        concatArrays: true,
+    }, options);
+}
+
 function getHandler<T>(target: Index<T>, name: string, current: Index<T>) {
     let endPointParams: IEndPointParams<T>;
     let proxy: Index<T>;
@@ -16,19 +28,16 @@ function getHandler<T>(target: Index<T>, name: string, current: Index<T>) {
         if (!current._parent) {
             return current._path;
         }
-        return `${current._parent._uri}${formatPath(current._path, current._options.pathStyle)}/`;
+        return `${current._parent._uri}${formatPath(current._path, current._fullOptions.pathStyle)}/`;
 
     case "_fullPath":
         if (!current._parent) {
             return "/";
         }
-        return `${current._parent._fullPath}${formatPath(current._path, current._options.pathStyle)}/`;
+        return `${current._parent._fullPath}${formatPath(current._path, current._fullOptions.pathStyle)}/`;
 
     case "_fullOptions":
-        if (!current._parent) {
-            return mergeOptions.call({concatArrays: true}, {}, current._options);
-        }
-        return mergeOptions.call({concatArrays: true}, current._parent._fullOptions, current._options);
+        return getFullOptions(current);
 
     case "_addHook":
         return (hook: IHookDefinition<T>) => {
@@ -54,8 +63,6 @@ function getHandler<T>(target: Index<T>, name: string, current: Index<T>) {
         proxy = makeProxy(current, name, {
             hooks: [],
             params: {headers: {}},
-            pathStyle: current._options.pathStyle,
-            encoder: Object.assign({}, current._options.encoder)
         });
         target[name] = proxy;
         return proxy;
@@ -65,10 +72,10 @@ function getHandler<T>(target: Index<T>, name: string, current: Index<T>) {
 
 const proxyHandler = {get: getHandler};
 
-export function makeProxy<T>(parent: Index<T>, path: string, options: ITypeRestOptions<T>): Index<T> {
+export function makeProxy<T>(parent: Index<T>, path: string, options: Partial<ITypeRestOptions<T>>): Index<T> {
     // Need to do some overrides with types as the proxy handles many of the fields
     return new Proxy({
-        _options: Object.assign({}, options),
+        _options: options,
         _parent: parent,
         _path: path,
     } as unknown as Index<T>, proxyHandler) as Index<T>;

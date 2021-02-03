@@ -39,6 +39,34 @@ describe("Hooks - _addHook func", () => {
         await api.test2.Get();
         expect(hookRunCount).toEqual(1);
     });
+
+    it("calls hooks only on handler (query only routes)", async () => {
+        let hookRunCount = 0;
+        const hook: IHookDefinition = {
+            hook: () => { hookRunCount++; },
+            type: "post",
+        };
+        const api = typeRest("https://localhost/");
+
+        api.test1.Get._addHook(hook);
+        await api.test1.Get();
+        await api.test1.Delete();
+        expect(hookRunCount).toEqual(1);
+    });
+
+    it("calls hooks only on handler (query and body only routes)", async () => {
+        let hookRunCount = 0;
+        const hook: IHookDefinition = {
+            hook: () => { hookRunCount++; },
+            type: "post",
+        };
+        const api = typeRest("https://localhost/");
+
+        api.test1.Post._addHook(hook);
+        await api.test1.Post({});
+        await api.test1.Put({});
+        expect(hookRunCount).toEqual(1);
+    });
 });
 
 describe("Hooks - POST with Error", () => {

@@ -23,19 +23,19 @@ describe("Encoding", () => {
     });
 
     it("custom", async () => {
-        fetch.mockResponse("a,b,c,d");
+        fetch.mockResponse("a,b,c,d\ne,f,g,h");
 
         const api = typeRest("https://api1.test-domain.local/api/v1", {
             encoder: {
                 requestContentType: "text/csv",
                 requestAcceptType: "text/csv",
-                responseDecoder: async response => (await response.text()).split(","),
-                requestEncoder: async (data: string[]) => data.join(","),
+                responseDecoder: async response => (await response.text()).split("\n").map(v => v.split(",")),
+                requestEncoder: async (data: string[][]) => data.map(row => row.join(",")).join("\n"),
             }
         });
-        const result = await api.Post(["d", "e", "f", "g"]);
-        expect(result).toEqual(["a", "b", "c", "d"]);
-        expect(fetch.mock.calls[0][1]).toHaveProperty("body", "d,e,f,g");
+        const result = await api.Post([[1,2,3,4],[5,6,7,8]]);
+        expect(result).toEqual([["a", "b", "c", "d"],["e", "f", "g", "h"]]);
+        expect(fetch.mock.calls[0][1]).toHaveProperty("body", "1,2,3,4\n5,6,7,8");
         expect(fetch.mock.calls[0][1].headers).toHaveProperty("Content-Type", "text/csv");
         expect(fetch.mock.calls[0][1].headers).toHaveProperty("Accept", "text/csv");
 

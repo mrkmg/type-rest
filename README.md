@@ -150,7 +150,7 @@ errors. This is a change from normal fetch usage, and was a design
 decision made by me. In my opinion, a 4xx or 5xx should never occur in a
 well-designed API *except* in rare exceptional cases.
 
-See the [Guide](docs/GUIDE.md) for how to setup Type Rest.
+See the [Guide](docs/GUIDE.md) for how to use Type Rest.
 
 
 ## License

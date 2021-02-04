@@ -33,7 +33,9 @@ interface ITypeRestOptions {
         requestAcceptType: string;
         requestEncoder: (data: TRequest) => Promise<string>;
         responseDecoder: (response: Response) => Promise<TResponse>;
-    }
+    },
+    trailingSlash: boolean
+    fetchImplementation: FetchImplementation;
 }
 ```
 
@@ -49,13 +51,19 @@ formatted path part. The default style is *"dashed"*. Look at
 [`test/pathing.test.ts`](test/pathing.test.ts) to see examples.
 
 `encoding` is an object which defines how request bodies and responses
-will be encoded/decoded, as well as the request's "Content-Type" and "Accept"
-headers.
+will be encoded/decoded, as well as the request's "Content-Type" and
+"Accept" headers. Some commonly used combinations are in
+`CommonEncodings`
+
+`trailingSlash` is either true/false. Defaults to true. Append a "/" to
+the end of generated URLS.
+
+`fetchImplementation` can be an implementation of fetch for environments
+where fetch is not available in the `window` object (like node).
 
 The options are inherited to all paths "below" it unless defined itself
 and can be adjusted at any point in the path.
 
-```typescript
 ```typescript
 import {typeRest} from "type-rest"; 
 

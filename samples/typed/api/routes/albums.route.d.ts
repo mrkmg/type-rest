@@ -1,4 +1,4 @@
-import {Merge, WithBody, WithNone, WithQuery} from "../../../../src";
+import {Merge, WithBody, WithNone, WithQuery} from "../../../../dist";
 import {Album} from "../../entities/album";
 import {PhotosStatic} from "./photos.route";
 

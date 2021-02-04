@@ -80,10 +80,18 @@ import {IAwesomeApiRoutes} from "./routes";
 
 export const AwesomeApi = typeRest<IAwesomeApiRoutes>("https://awesome-app/api/v1/");
 
+// Adds hooks to all routes
 AwesomeApi._addHook(loginHook);
 AwesomeApi._addHook(logoutHook);
+
+// adds a hook to everything at /path
+AwesomeApi.path._addHook(hook);
+
+// adds a hook only for GET /sub/path
+AwesomeApi.sub.path.Get._addHook(hook);
 ```
 
 Important: If `_addHook` is called from a sub-path, the hook will only
 apply to the route and its child-routes, regardless of the "path"
-property.
+property. If `_addHook` is called on an end-point method, the hook will only
+run for the exactly endpoint and method.

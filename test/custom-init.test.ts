@@ -6,6 +6,10 @@ describe("Custom Initialization", () => {
         TypeRestDefaults.fetchImplementation = fetch;
     });
 
+    afterAll(() => {
+        TypeRestDefaults.fetchImplementation = null;
+    });
+
     beforeEach(() => {
         fetch.resetMocks();
         fetch.mockResponse("{}");
@@ -37,5 +41,21 @@ describe("Custom Initialization", () => {
         expect(fetch.mock.calls[0][1]).toHaveProperty("headers", {base: "b", Accept: "application/json"});
         expect(fetch.mock.calls[1][1]).toHaveProperty("headers", {base: "b", one: "1", Accept: "application/json"});
         expect(fetch.mock.calls[2][1]).toHaveProperty("headers", {base: "b", two: "2", Accept: "application/json"});
+    });
+});
+
+describe("No Fetch Available", () => {
+    let wF: typeof window.fetch, gF: typeof global.fetch;
+    beforeAll(() => {
+        wF = window.fetch = undefined;
+        gF = global.fetch = undefined;
+    });
+    afterAll(() => {
+        window.fetch = wF;
+        global.fetch = gF;
+    });
+
+    it("should error with no fetch", async () => {
+        expect(() => typeRest("test")).toThrowError("Neither window.fetch nor global.fetch exists. Pass an implementation of fetch into the typeRest options, or set the TypeRestDefault.fetchImplementation");
     });
 });

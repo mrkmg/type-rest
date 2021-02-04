@@ -1,6 +1,8 @@
-import {CommonEncodings, typeRest} from "../../src";
+import {CommonEncodings, typeRest, TypeRestDefaults} from "../../dist";
+import fetch from "node-fetch";
 
 async function main() {
+    TypeRestDefaults.fetchImplementation = fetch;
     const api = typeRest("https://jsonplaceholder.typicode.com");
     api._addHook({
         type: "pre",

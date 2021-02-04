@@ -169,7 +169,7 @@ import {
     WithNone, WithQuery, WithBody, WithBodyAndQuery, WithOptionalQuery,
     WithBodyAndOptionalQuery, WithOptionalBodyAndOptionalQuery} from "type-rest";
 
-interface AllValidEnpoints {
+interface AllValidEndpoints {
     Delete: WithNone<ReturnDefinition>;
     Delete: WithQuery<QueryDefinition, ReturnDefinition>;
     Delete: WithOptionalQuery<QueryDefinition, ReturnDefinition>;

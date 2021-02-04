@@ -71,12 +71,4 @@ describe("Encoding", () => {
                 "abc,\"a,bc\",\"a\"\"\",\"a\nbc\",\"a,b\nc\"");
         });
     });
-
-    describe("Form Data", () => {
-        it("simple", async () => {
-            const obj = new FormData();
-            obj.append("test", "test");
-            await expect(Encoders.formData(obj)).resolves.toBe(obj);
-        });
-    });
 });

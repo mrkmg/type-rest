@@ -1,4 +1,4 @@
-import {Merge, WithBody, WithNone, WithQuery} from "../../../../src";
+import {Merge, WithBody, WithNone, WithQuery} from "../../../../dist";
 import {Photo} from "../../entities/photo";
 
 export type PhotosRoute = Merge<PhotosStatic, PhotosIndexed>;

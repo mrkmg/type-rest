@@ -6,6 +6,10 @@ describe("Pathing", () => {
         TypeRestDefaults.fetchImplementation = fetch;
     });
 
+    afterAll(() => {
+        TypeRestDefaults.fetchImplementation = null;
+    });
+
     beforeEach(() => {
         fetch.resetMocks();
         fetch.mockResponse("{}");
@@ -59,5 +63,12 @@ describe("Pathing", () => {
         const api = typeRest("https://localhost/");
         await api.path[0].Get();
         expect(fetch.mock.calls[0][0]).toBe("https://localhost/path/0/");
+    });
+
+    it("noTrailingSlash", async () => {
+        const api = typeRest("https://localhost/", {trailingSlash: false});
+        await api.path[0].Get();
+        expect(fetch.mock.calls[0][0]).toBe("https://localhost/path/0");
+
     });
 });

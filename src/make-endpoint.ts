@@ -1,7 +1,7 @@
 import {runPostHooks, runPreHooks} from "./hooks";
 import {makeRequest} from "./make-request";
-import {Index} from "./type-rest";
 import {IHookDefinition} from "./types";
+import {Index} from "./types";
 
 export type ValidEndpoint = "DELETE" | "GET" | "POST" | "PATCH" | "PUT";
 
@@ -19,8 +19,6 @@ export function makeEndpoint<T>(params: IEndPointParams<T>): (...args: unknown[]
     case "PATCH":
     case "PUT":
         return withBodyFunc<T>(params);
-    default:
-        throw new Error(`Unknown Endpoint Type: ${params.type}`);
     }
 }
 
@@ -34,8 +32,14 @@ function withoutBodyFunc<T>(params: IEndPointParams<T>) {
     };
 
     func._addHook = (hook: Omit<IHookDefinition<T>, "path" | "method">) => {
+        const path = [];
+        let current = params.current;
+        while (current._parent) {
+            path.unshift(current._path);
+            current = current._parent;
+        }
         const fullHook: IHookDefinition<T> = Object.assign({}, hook, {
-            path: params.current._fullPath,
+            path,
             method: params.type
         });
         params.current._addHook(fullHook);

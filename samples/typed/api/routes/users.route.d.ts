@@ -1,4 +1,4 @@
-import {Merge, WithBody, WithNone, WithQuery} from "../../../../src";
+import {Merge, WithBody, WithNone, WithQuery} from "../../../../dist";
 import {User} from "../../entities/user";
 import {CommentsStatic} from "./comments.route";
 import {PostsStatic} from "./posts.route";

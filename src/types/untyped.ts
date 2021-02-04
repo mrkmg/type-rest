@@ -1,4 +1,4 @@
-import {DeleteRoute, GetRoute, PatchRoute, PostRoute, PutRoute} from "./types";
+import {DeleteRoute, GetRoute, PatchRoute, PostRoute, PutRoute} from "./endpoints";
 
 export type UntypedTypeRestApi = ITypeRestEndpoints & ITypeRestIntermediary;
 

@@ -1,4 +1,4 @@
-import {Merge, WithBody, WithNone, WithQuery} from "../../../../src";
+import {Merge, WithBody, WithNone, WithQuery} from "../../../../dist";
 import {Comment} from "../../entities/comment";
 
 export type CommentsRoute = Merge<CommentsStatic, CommentsIndexed>;

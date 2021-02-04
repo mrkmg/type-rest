@@ -121,11 +121,14 @@ git clone https://github.com/mrkmg/type-rest.git && cd type-rest
 # Install Dependencies
 npm install
 
+# Build library
+npm run build
+
 # Run the untyped sample
-npx ts-node samples/untyped/untypedApi.ts
+npx ts-node samples/untyped
 
 # Run the typed sample
-npx ts-node samples/types/typedApi.ts
+npx ts-node samples/typed
 ```
 
 ## Description

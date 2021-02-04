@@ -1,9 +1,13 @@
 import fetch from "jest-fetch-mock";
-import {Encoders, typeRest, TypeRestDefaults, CommonEncodings} from "../src";
+import {typeRest, TypeRestDefaults, CommonEncodings} from "../src";
 
 describe("Encoding", () => {
     beforeAll(() => {
         TypeRestDefaults.fetchImplementation = fetch;
+    });
+
+    afterAll(() => {
+        TypeRestDefaults.fetchImplementation = null;
     });
 
     beforeEach(() => {

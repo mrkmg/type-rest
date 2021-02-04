@@ -1,7 +1,10 @@
-export const Decoders = Object.freeze({
-    "json": async (response: Response) => await response.json(),
-    "csv": async (response: Response) => parseCSV(await response.text())
-});
+export function json(response: Response): Promise<unknown> {
+    return response.json();
+}
+
+export async function csv(response: Response): Promise<string[][]> {
+    return parseCSV(await response.text());
+}
 
 // Retrieved from https://stackoverflow.com/questions/1293147/example-javascript-code-to-parse-csv-data
 function parseCSV(str) {

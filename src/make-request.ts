@@ -1,6 +1,5 @@
-import {TypeRestDefaults} from "./type-rest";
 import {IPreHookEvent} from "./types";
-import {queryStringEncoder} from "./encoding/query-string";
+import {queryString} from "./encoding/encoders";
 
 export async function makeRequest<T>(preHookEvent: IPreHookEvent<T>): Promise<Response> {
     const params: RequestInit = Object.assign({}, preHookEvent.options.params);
@@ -14,11 +13,11 @@ export async function makeRequest<T>(preHookEvent: IPreHookEvent<T>): Promise<Re
     }
 
     if (preHookEvent.requestQuery !== null) {
-        url = url + "?" + queryStringEncoder(preHookEvent.requestQuery);
+        url = url + "?" + await queryString(preHookEvent.requestQuery);
     }
 
     // tslint:disable-next-line
     params.headers["Accept"] = preHookEvent.options.encoder.requestAcceptType;
 
-    return TypeRestDefaults.fetchImplementation(url, params);
+    return preHookEvent.options.fetchImplementation(url, params);
 }

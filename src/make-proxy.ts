@@ -39,13 +39,13 @@ function getHandler<T>(target: Index<T>, name: string, current: Index<T>) {
         if (!current._parent) {
             return current._path;
         }
-        return `${current._root._path}${pathEncoder(getFullPathParts(current), current._fullOptions.pathStyle)}/`;
+        return `${current._root._path}${pathEncoder(getFullPathParts(current), current._fullOptions.pathStyle)}${current._fullOptions.trailingSlash ? "/" : ""}`;
 
     case "_fullPath":
         if (!current._parent) {
             return "/";
         }
-        return `/${pathEncoder(getFullPathParts(current), current._fullOptions.pathStyle)}/`;
+        return `/${pathEncoder(getFullPathParts(current), current._fullOptions.pathStyle)}${current._fullOptions.trailingSlash ? "/" : ""}`;
 
     case "_fullOptions":
         return getFullOptions(current);

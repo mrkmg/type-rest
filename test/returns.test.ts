@@ -6,6 +6,10 @@ describe("Returns", () => {
         TypeRestDefaults.fetchImplementation = fetch;
     });
 
+    afterAll(() => {
+        TypeRestDefaults.fetchImplementation = null;
+    });
+
     beforeEach(() => {
         fetch.resetMocks();
     });

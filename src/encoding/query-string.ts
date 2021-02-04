@@ -1,4 +1,4 @@
-export function buildQueryString(obj: unknown): string {
+export function queryStringEncoder(obj: unknown): string {
     const queryStringOptions: string[] = [];
 
     const solve = (v: unknown) => {

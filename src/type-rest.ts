@@ -1,6 +1,8 @@
 import {makeProxy} from "./make-proxy";
 import {ITypeRestEndpoints, UntypedTypeRestApi} from "./untyped";
 import {IHookDefinition} from "./types";
+import {Encoders} from "./encoding/encoders";
+import {Decoders} from "./encoding/decoders";
 
 type KeyTypes<T> = Exclude<T, IIndexPrivates<T> & ITypeRestEndpoints>;
 
@@ -31,16 +33,16 @@ export type Index<T> = Indexed<KeyTypes<T>> & IIndexPrivates<T>;
  * * snakeCase -> convert path to snake case (test_path)
  * * none -> do not modify path (testPath)
  *
- * or a function which takes in a path part and returns it transformed.
+ * or a function which takes in an array of path parts and returns the string representation of those parts.
  */
-export type ValidPathStyles = "lowerCased" | "upperCased" | "dashed" | "snakeCase" | "none" | ((pathPath: string) => string);
+export type ValidPathStyles = "lowerCased" | "upperCased" | "dashed" | "snakeCase" | "none" | ((pathParts: string[]) => string);
 type DisallowedRequestInitKeys = "body" | "query" | "method";
 // This is a work-around for headers being a stupid type in RequestInit.
 export type ITypeRestParams = Omit<RequestInit, DisallowedRequestInitKeys> & {headers?: Record<string, string>};
 interface IRequestEncoder<TRequest = unknown, TResponse = unknown> {
     requestContentType: string;
     requestAcceptType: string;
-    requestEncoder: (data: TRequest) => Promise<string>;
+    requestEncoder: (data: TRequest) => Promise<BodyInit>;
     responseDecoder: (response: Response) => Promise<TResponse>;
 }
 
@@ -73,6 +75,31 @@ export const TypeRestDefaults: {
     fetchImplementation: getDefaultFetch()
 };
 
+export function pathEncoder(pathParts: string[], pathStyle: ValidPathStyles): string {
+    if (typeof pathStyle === "function")
+        return pathStyle(pathParts);
+
+    return pathParts.map(part => {
+        switch (pathStyle) {
+        case "lowerCased":
+            return part.toLowerCase();
+        case "upperCased":
+            return part.toUpperCase();
+        case "dashed":
+            return part.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+        case "snakeCase":
+            return part.replace(/([a-z0-9])([A-Z])/g, "$1_$2").toLowerCase();
+        case "none":
+            return part;
+        default:
+            throw new Error(`Unknown Path Style ${pathStyle}`);
+        }
+    }).map(part => {
+        if (part.endsWith("/")) return part.substr(0, part.length - 1);
+        return part;
+    }).join("/");
+}
+
 export function typeRest<T = UntypedTypeRestApi>(path: string, options?: ITypeRestOptionsInit<T>): Index<T> {
     if (typeof options === "undefined") {
         options = {};
@@ -91,22 +118,11 @@ export function typeRest<T = UntypedTypeRestApi>(path: string, options?: ITypeRe
     }
 
     if (typeof options.encoder === "undefined") {
-        options.encoder = {
-            requestAcceptType: "application/json",
-            requestContentType: "application/json",
-            requestEncoder: async input => JSON.stringify(input),
-            responseDecoder: response => response.json(),
-        };
+        options.encoder = CommonEncodings.jsonToJson;
     }
 
     options.params = Object.assign({
-        cache: "default",
-        credentials: "same-origin",
         headers: {},
-        hooks: [],
-        mode: "same-origin",
-        redirect: "follow",
-        referrer: "client",
     }, options.params);
 
     if (path[path.length - 1] !== "/") {
@@ -115,3 +131,24 @@ export function typeRest<T = UntypedTypeRestApi>(path: string, options?: ITypeRe
 
     return makeProxy<T>(null, path, options as ITypeRestOptions<T>);
 }
+
+export const CommonEncodings = Object.freeze({
+    "jsonToJson": {
+        requestAcceptType: "application/json",
+        requestContentType: "application/json",
+        requestEncoder: Encoders.json,
+        responseDecoder: Decoders.json,
+    },
+    "formDataToJson": {
+        requestAcceptType: "application/json",
+        requestContentType: "multipart/form-data",
+        requestEncoder: Encoders.formData,
+        responseDecoder: Decoders.json,
+    },
+    "jsonToCsv": {
+        requestAcceptType: "text/csv",
+        requestContentType: "application/json",
+        requestEncoder: Encoders.json,
+        responseDecoder: Decoders.csv,
+    }
+});

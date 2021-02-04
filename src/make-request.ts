@@ -1,6 +1,6 @@
-import {buildQueryString} from "./build-query-string";
 import {TypeRestDefaults} from "./type-rest";
 import {IPreHookEvent} from "./types";
+import {queryStringEncoder} from "./encoding/query-string";
 
 export async function makeRequest<T>(preHookEvent: IPreHookEvent<T>): Promise<Response> {
     const params: RequestInit = Object.assign({}, preHookEvent.options.params);
@@ -14,7 +14,7 @@ export async function makeRequest<T>(preHookEvent: IPreHookEvent<T>): Promise<Re
     }
 
     if (preHookEvent.requestQuery !== null) {
-        url = url + "?" + buildQueryString(preHookEvent.requestQuery);
+        url = url + "?" + queryStringEncoder(preHookEvent.requestQuery);
     }
 
     // tslint:disable-next-line

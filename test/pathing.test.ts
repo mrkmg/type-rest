@@ -49,7 +49,7 @@ describe("Pathing", () => {
 
     it("custom", async () => {
         const api = typeRest("https://localhost/", {
-            pathStyle: (s) => s.toLowerCase().replace(/test/g, "other")
+            pathStyle: (s) => s.map( p => p.toLowerCase().replace(/test/g, "other")).join("/")
         });
         await api.testTest01Test02test.Get();
         expect(fetch.mock.calls[0][0]).toBe("https://localhost/otherother01other02other/");

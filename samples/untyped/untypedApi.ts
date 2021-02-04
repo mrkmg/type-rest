@@ -1,4 +1,4 @@
-import {typeRest} from "../../src";
+import {CommonEncodings, typeRest} from "../../src";
 
 async function main() {
     const api = typeRest("https://jsonplaceholder.typicode.com");
@@ -9,6 +9,8 @@ async function main() {
             console.log({method, path, requestBody, requestQuery});
         },
     });
+
+    api.testing._options.encoder = CommonEncodings.jsonToCsv;
 
     try {
         const todo = await api.todos[1].Get();

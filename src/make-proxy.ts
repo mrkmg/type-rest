@@ -1,5 +1,5 @@
 import mergeOptions = require("merge-options");
-import {IHookDefinition, Index, ITypeRestOptions, ValidPathStyles} from "./";
+import {IHookDefinition, Index, ITypeRestOptions, pathEncoder} from "./";
 import {IEndPointParams, makeEndpoint, ValidEndpoint} from "./make-endpoint";
 
 function getFullOptions<T>(start: Index<T>) {
@@ -14,13 +14,24 @@ function getFullOptions<T>(start: Index<T>) {
     }, options);
 }
 
+function getFullPathParts<T>(start: Index<T>): string[] {
+    if (!start._parent) return [];
+    let current = start;
+    const pathParts = [];
+    do {
+        pathParts.unshift(current._path);
+        current = current._parent;
+    } while (current._parent);
+    return pathParts;
+}
+
 function getHandler<T>(target: Index<T>, name: string, current: Index<T>) {
     let endPointParams: IEndPointParams<T>;
     let proxy: Index<T>;
     switch (name) {
     case "_root":
         if (current._parent) {
-            return current._parent;
+            return current._parent._root;
         }
         return current;
 
@@ -28,13 +39,13 @@ function getHandler<T>(target: Index<T>, name: string, current: Index<T>) {
         if (!current._parent) {
             return current._path;
         }
-        return `${current._parent._uri}${formatPath(current._path, current._fullOptions.pathStyle)}/`;
+        return `${current._root._path}${pathEncoder(getFullPathParts(current), current._fullOptions.pathStyle)}/`;
 
     case "_fullPath":
         if (!current._parent) {
             return "/";
         }
-        return `${current._parent._fullPath}${formatPath(current._path, current._fullOptions.pathStyle)}/`;
+        return `/${pathEncoder(getFullPathParts(current), current._fullOptions.pathStyle)}/`;
 
     case "_fullOptions":
         return getFullOptions(current);
@@ -81,22 +92,3 @@ export function makeProxy<T>(parent: Index<T>, path: string, options: Partial<IT
     } as unknown as Index<T>, proxyHandler) as Index<T>;
 }
 
-function formatPath(path: string, pathStyle: ValidPathStyles) {
-    if (typeof pathStyle === "function")
-        return pathStyle(path);
-
-    switch (pathStyle) {
-    case "lowerCased":
-        return path.toLowerCase();
-    case "upperCased":
-        return path.toUpperCase();
-    case "dashed":
-        return path.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
-    case "snakeCase":
-        return path.replace(/([a-z0-9])([A-Z])/g, "$1_$2").toLowerCase();
-    case "none":
-        return path;
-    default:
-        throw new Error(`Unknown Path Style ${pathStyle}`);
-    }
-}

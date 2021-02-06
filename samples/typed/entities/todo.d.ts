@@ -1,6 +1,6 @@
-export interface ITodo {
+export interface Todo {
+    userId: number;
     id: number;
-    date: string;
     title: string;
     completed: boolean;
 }

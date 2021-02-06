@@ -1,16 +1,76 @@
 Type Rest
-============
+=========
 
-A simple fetch wrapper made for TypeScript which allows developers to
-create and distribute a typed interface to their APIs.
+A simple fetch wrapper made with for TypeScript to pragmatically build
+endpoints, requests, and responses a for a Rest API. API Developers can
+use, and/or distribute a typed interface to allow for IDE code
+completion on their APIs inside of TypeScript projects.
+
+- [Quick Start](#quick-start)
+- [Examples](#examples)
+- [Description](#description)
+- [How to Use](docs/GUIDE.md)
+- [Internals](docs/INTERNALS.md)
+- [Options](docs/OPTIONS.md)
+- [License](#license)
+
 
 ## Quick Start
 
-First, create an API instance and Spec:
+```shell
+npm install --save type-rest
+# or
+npm i -s type-rest
+```
 
-api.ts
+## Examples
+
+Quick untyped example.
+
 ```typescript
-import {typeRest, WithNone, WithBody, WithQuery, IHook} from "type-rest";
+import {typeRest} from "/type-rest";
+
+const api = typeRest("http://api-server.local/v1/");
+
+const allTodos = await api.todos.Get();
+const singleTodo = await api.todos[1].Get();
+const todo = await api.todos.Post({title: "Some Task", completed: false});
+await api.todos[todo.id].Patch({completed: true});
+```
+
+Quick typed example:
+
+```typescript
+import {typeRest, WithNone, WithBody, WithQuery, IHook, Merge} from "type-rest";
+
+interface ApiRoute {
+    authentication: AuthenticationRoute;
+    todos: Merge<TodosRoute, {[todo: string]: TodoRoute}>;
+}
+
+interface AuthenticationRoute {
+    Get: WithNone<{authenticated: boolean}>;
+    Post: WithBody<{username: string, password: string}, {result: boolean, token?: string, error?: string}>;
+    Delete: WithNone<void>;
+}
+
+interface TodosRoute {
+    Get: WithQuery<{page: number, limit?: number}, Todo[]>;
+    Post: WithBody<Omit<Todo, "id" | "completed">>;
+}
+
+interface TodoRoute {
+    Get: WithNone<Todo>;
+    Patch: WithBody<Partial<Omit<Todo, "id">>>;
+    Delete: WithNone<void>;
+}
+
+interface Todo {
+    id: string;
+    date: string;
+    title: string;
+    completed: boolean;
+}
 
 const loginHook: IHook = {
      hook: (ev) => {
@@ -19,6 +79,7 @@ const loginHook: IHook = {
      },
      method: "POST",
      route: "/authentication/",
+     type: "post",
  };
 
 const logoutHook: IHook = {
@@ -27,345 +88,86 @@ const logoutHook: IHook = {
     },
     method: "DELETE",
     route: "/authentication/",
+    type: "post",
 };
 
-export const Api = typeRest<ApiRoute>("https://some-url/api", {
+const Api = typeRest<ApiRoute>("https://some-url/api", {
     hooks: [loginHook, logoutHook],
     params: {
         mode: "cors",
     }
 });
 
-export interface ApiRoute {
-    authentication: AuthenticationRoute;
-    todos: TodosRoute;
-}
+// Login
+await Api.authentication.Post({username: "testuser", password: "testpassword"});
 
-export interface AuthenticationRoute {
-    Get: WithNone<{authenticated: boolean}>;
-    Post: WithBody<{username: string, password: string}, {result: boolean, token?: string, error?: string}>;
-    Delete: WithNone<void>;
-}
+// Get list of todos
+const todos = await Api.todos.Get({limit: 5});
 
-export interface TodosRoute {
-    Get: WithQuery<{page: number, limit?: number}, Todo[]>;
-    Post: WithBody<Pick<Todo, Exclude<keyof Todo, "id" | "completed">>, Todo>;
-    [todoId: number]: TodoRoute;
-}
+// Set first in list to completed
+await Api.todos[todos[0].id].Patch({completed: true});
 
-export interface TodoRoute {
-    Get: WithNone<Todo>;
-    Patch: WithBody<Partial<Todo>, Todo>;
-    Delete: WithNone<void>;
-}
-
-export interface Todo {
-    id: number;
-    date: string;
-    title: string;
-    completed: boolean;
-}
+// Logout
+await Api.authentication.Delete();
 ```
 
-## Intended Use
+Full featured examples can be found in the samples directory of the
+source tree. To run the samples, clone this project, install the
+dependencies, and run:
 
-Type Rest is intended to be used to provide a simple to use interface
-to a well defined JSON-based API. All endpoints, query params, and body
-params can be typed out via TypeScript and the provided types, and then
-passed to an instance of type-rest which will then convert those typed
-routes into callable functions.
+```shell script
+# Clone project
+git clone https://github.com/mrkmg/type-rest.git && cd type-rest
 
-Type Rest also provides a hook system to trigger actions before and
-after a request. The hooks can modify requests as well as trigger
-side-effects with the response.
+# Install Dependencies
+npm install
 
-In order to provide a typed interface to your api, you must first build
-your API definition. This is done by using the included helper 
-definitions.
+# Build library
+npm run build
 
-Under the hood, Type Rest uses fetch with one major difference. All
-non-successful calls are rejected. This includes 4xx and 5xx server 
-errors.
+# Run the untyped sample
+npx ts-node samples/untyped
 
-## How to Use
-
-Once you have a defined API and exported an instance of Type Rest with
-your API definition, you or other developers, will be able to call 
-endpoints to your api.
-
-From the example above:
-
-test.ts
-```typescript
-import {Api} from "./api";
-
-async function testApi() {
-    const authStatus = await Api.authentication.Get();
-    
-    if (!authStatus.authenticated) {
-        await Api.authentication.Post({username: "test", password: "test"});
-        // Due to the hook define, this will add the appropriate token header to all future API calls
-    }
-    
-    const todos = await Api.todos.Get({page: 2}); // List page two
-    const todo = await Api.todos[1].Get(); // Get to-do with ID 1
-    await Api.todos[1].Delete(); // Delete to-do with ID 1
-}
-
+# Run the typed sample
+npx ts-node samples/typed
 ```
 
-## Building the API Definition
+## Description
 
-One of the core concepts of Type Rest is fully defining all the input
-and output types of the restful calls. Using the powerful type system
-built into TypeScript combined with the flexibility of Type Rest, 
-almost any situation can be accounted for. 
+Type Rest is provides a simple-to-use interface to a well-defined API.
+All endpoints, query params, body objects, and responses can be defined
+through the use TypeScript and the provided type system. Those
+definitions can be used to an instance of Type Rest which translates
+those defined routes to callable functions.
 
-There 4 concepts to creating your Typed API. First is the routes,
-second are the end points, third are the input and output data, and finally 
-the instance. Routes are paths of your api, end points 
-are the HTTP verbs, data is the request and response data, and the
-instance is what brings all those together into a usable api.
+Type Rest is by default opinionated to JSON based bodies and responses,
+using HTTP Verbs, and dashes in the URLs. All these can be configured
+though for differing API configurations with instance-specific options.
 
-### Defining your api
+Type Rest also provides a hook system to trigger actions before or after
+a request. These hooks can modify the requests, the responses, or
+trigger side effects.
 
-Lets take the following API as an example:
+Under the hood, Type Rest uses fetch with one major difference. **All
+non-successful calls are rejected.** This includes 4xx and 5xx server
+errors. This is a change from normal fetch usage, and was a design
+decision made by me. In my opinion, a 4xx or 5xx should never occur in a
+well-designed API *except* in rare exceptional cases.
 
-```text
-ROOT    https://awesome-app/api/v1/
+See the [Guide](docs/GUIDE.md) for how to use Type Rest.
 
-Authentication
-
-GET /authentication
-Get authentication status
-
-POST /authentication
-Authenticate with the api
-
-DELETE /authentication
-Remove authentication
-
-GET /todos
-Get a list of todos
-
-GET /todos/{id}
-Get a single todo
-
-POST /todos
-Create a todo
-
-PATCH /todos/{id}
-Update a todo
-
-DELETE /todos/{id}
-Delete a todo
-```
-
-Using the list of end points above, we can create all the definitions we need.
-
-Looking at the api, we have two first-level routes: "authentication" and 
-"todos". Lets start with the authentication route.
-
-Within authentication, we have 3 end-points, "GET, POST, and DELETE". We can
-directly type those.
-
-authentication-route.ts
-```typescript
-import {WithBody, WithNone} from "type-rest";
-
-export interface IAuthenticationRoute {
-    Get: WithNone<{authenticated: boolean}>;
-    Post: WithBody<{username: string, password: string}, {result: boolean, token?: string, error?: string}>;
-    Delete: WithNone<void>;
-}
-```
-
-Next, we can start typing out the "todos" route. First thing to do is to type out a Todo.
-
-todo.ts
-```typescript
-export interface ITodo {
-    id: number;
-    date: string;
-    title: string;
-    completed: boolean;
-}
-```
-
-After we have the Todo interface, we will need to type out the route.
-
-todos-route.ts
-```typescript
-import {WithBody, WithQuery} from "type-rest";
-import {ITodo} from "./todo";
-
-export interface ITodosRoute {
-    Get: WithQuery<{page: number, limit?: number}, ITodo[]>;
-    Post: WithBody<Pick<ITodo, Exclude<keyof ITodo, "id" | "completed">>, ITodo>;
-}
-```
-
-Here we see an advanced type. Basically what the `Pick<Todo, Exclude<keyof Todo, "id" | "completed">>`
-means is the all the keys of `Todo` except "id" and "completed".
-
-But we are missing the routes which work on a single todo.
-Lets type that route out separately first.
-
-todo-route.ts
-```typescript
-import {WithBody, WithNone} from "type-rest";
-import {ITodo} from "./todo";
-
-export interface ITodoRoute {
-    Get: WithNone<ITodo>;
-    Patch: WithBody<Partial<ITodo>, ITodo>;
-    Delete: WithNone<void>;
-}
-```
-
-Now that we have that route, we can modify our "TodosRoute" to include 
-it. Seeing as the route is variable to the id of the Todo, we can use
-the "index" property in typescript.
-
-todos-route.ts
-```typescript
-import {WithBody, WithQuery} from "type-rest";
-import {ITodo} from "./todo";
-import {ITodoRoute} from "./todo-route";
-
-export interface ITodosRoute {
-    Get: WithQuery<{page: number, limit?: number}, ITodo[]>;
-    Post: WithBody<Pick<ITodo, Exclude<keyof ITodo, "id" | "completed">>, ITodo>;
-    [todoId: number]: ITodoRoute;
-}
-```
-
-Now, all of our routes are defined. We just need to bring it all 
-together into a single "root" route which defines the entire API.
-
-routes.ts
-```typescript
-import {IAuthenticationRoute} from "./authentication-route";
-import {ITodosRoute} from "./todos-route";
-
-export interface IAwesomeApiRoutes {
-    authentication: IAuthenticationRoute;
-    todos: ITodosRoute;
-}
-```
-
-### Creating the instance
-
-We have the entire API typed out, and want to be actually use it in
-our application. This is very easy:
-
-awesome-api.ts
-```typescript
-import {typeRest} from "type-rest";
-import {IAwesomeApiRoutes} from "./routes";
-
-export const AwesomeApi = typeRest<IAwesomeApiRoutes>("https://awesome-app/api/v1/");
-```
-
-Now, anywhere else in your app, you can use the "AwesomeApi" to make 
-requests to your api!
-
-## Hooks
-
-Built into type rest is the ability to hook into requests to modify
-the api instance or trigger side effects. The primary purpose of the
-hooks is to handle authentication tokens, headers, etc. Many API's 
-require a token to be sent with every request. This token can either 
-be given to the developer, or returned as part of an authentication request.
-
-In the above example, we can see that the authentication result returns
-a token. If we were required to pass this token in all future requests,
-the user of the API would need to modify the api params.
-
-```typescript
-import {AwesomeApi} from "./awesome-api.ts"
-
-const result = AwesomeApi.authentication.Post({username: "user", password: "pass"});
-
-if (result.valid) {
-    AwesomeApi._options.params.headers["auth-token"] = result.token;
-}
-```
-
-If you as the API developer wanted to automate this for the
-consumers of your API, you can use the hooks system.
-
-hooks.ts
-```typescript
-import {IHook} from "type-rest";
-
-export const loginHook: IHook = {
-    hook: (ev) => {
-        if (!ev.response.result) { return Promise.reject(ev.response.error); }
-        ev.instance._options.params.headers["auth-token"] = ev.response.token;
-    },
-    method: "POST",
-    route: "/authentication/",
-    type: "post",
-};
-
-export const logoutHook: IHook = {
-    hook: (ev) => {
-        delete ev.instance._options.params.headers["auth-token"];
-    },
-    method: "DELETE",
-    route: "/authentication/",
-    type: "post",
-
-};
-```
-
-awesome-api-with-hooks.ts
-```typescript
-import {typeRest} from "type-rest";
-import {loginHook, logoutHook} from "./hooks";
-import {IAwesomeApiRoutes} from "./routes";
-
-export const AwesomeApi = typeRest<IAwesomeApiRoutes>("https://awesome-app/api/v1/", {
-    hooks: [loginHook, logoutHook],
-});
-```
-
-In the above example, you can see two separate hooks, a login hook and
-a logout hook. The login hook will only be executed on a "POST" call to
-the /authentication/ route. the logout hook will only be executed on a
-"DELETE" call the /authentication and will remove the token.
-
-## Adding hooks at runtime
-
-If you have an instance of Type Rest, and want to add a hook, you can
-use the `_addHook` method. From the examples above:
-
-```typescript
-import {typeRest} from "type-rest";
-import {loginHook, logoutHook} from "./hooks";
-import {IAwesomeApiRoutes} from "./routes";
-
-export const AwesomeApi = typeRest<IAwesomeApiRoutes>("https://awesome-app/api/v1/");
-
-AwesomeApi._addHook(loginHook);
-AwesomeApi._addHook(logoutHook);
-```
-
-Important: If `_addHook` is called from a sub-path, the hook will only apply
-to the route and its child-routes, regardless of the "path" property.
 
 ## License
 
-Copyright 2019 Kevin Gravier
+Copyright 2019-2021 Kevin Gravier
 
 Permission is hereby granted, free of charge, to any person obtaining a
-copy of this software and associated documentation files 
-(the "Software"), to deal in the Software without restriction, 
-including without limitation the rights to use, copy, modify, merge, 
-publish, distribute, sublicense, and/or sell copies of the Software, and 
-to permit persons to whom the Software is furnished to do so, subject 
-to the following conditions:
+copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
 
 The above copyright notice and this permission notice shall be included
 in all copies or substantial portions of the Software.

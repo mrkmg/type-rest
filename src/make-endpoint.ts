@@ -1,6 +1,7 @@
 import {runPostHooks, runPreHooks} from "./hooks";
 import {makeRequest} from "./make-request";
-import {Index} from "./type-rest";
+import {IHookDefinition} from "./types";
+import {Index} from "./types";
 
 export type ValidEndpoint = "DELETE" | "GET" | "POST" | "PATCH" | "PUT";
 
@@ -18,18 +19,28 @@ export function makeEndpoint<T>(params: IEndPointParams<T>): (...args: unknown[]
     case "PATCH":
     case "PUT":
         return withBodyFunc<T>(params);
-    default:
-        throw new Error(`Unknown Endpoint Type: ${params.type}`);
     }
 }
 
 function withoutBodyFunc<T>(params: IEndPointParams<T>) {
     const func = async (...args: unknown[]) => {
-        return runRequest(params, null, args.length === 1 ? args[0] : null, false);
+        return runRequest(params, null, args.length >= 1 ? args[0] : null, false);
     };
 
     func.raw = (...args: unknown[]) => {
-        return runRequest(params, null, args.length === 1 ? args[0] : null, true);
+        return runRequest(params, null, args.length >= 1 ? args[0] : null, true);
+    };
+
+    func._addHook = (hook: Omit<IHookDefinition<T>, "path" | "method">) => {
+        const path = params.current._fullPath;
+        path.shift(); // remove root
+        params.current._addHook(
+            path.length === 0 ?
+                Object.assign({}, hook) :
+                Object.assign({}, hook, {
+                    path,
+                    method: params.type
+                }));
     };
 
     return func;
@@ -37,11 +48,23 @@ function withoutBodyFunc<T>(params: IEndPointParams<T>) {
 
 function withBodyFunc<T>(params: IEndPointParams<T>) {
     const func = async (...args: unknown[]) => {
-        return runRequest(params, args.length >= 1 ? args[0] : null, args.length === 2 ? args[1] : null, false);
+        return runRequest(params, args.length >= 1 ? args[0] : null, args.length >= 2 ? args[1] : null, false);
     };
 
     func.raw = (...args: unknown[]) => {
-        return runRequest(params, args.length >= 1 ? args[0] : null, args.length === 2 ? args[1] : null, true);
+        return runRequest(params, args.length >= 1 ? args[0] : null, args.length >= 2 ? args[1] : null, true);
+    };
+
+    func._addHook = (hook: Omit<IHookDefinition<T>, "path" | "method">) => {
+        const path = params.current._fullPath;
+        path.shift(); // remove root
+        params.current._addHook(
+            path.length === 0 ?
+                Object.assign({}, hook) :
+                Object.assign({}, hook, {
+                    path,
+                    method: params.type
+                }));
     };
 
     return func;
@@ -49,10 +72,10 @@ function withBodyFunc<T>(params: IEndPointParams<T>) {
 
 async function runRequest<T>(params: IEndPointParams<T>, body: unknown, query: unknown, raw: boolean) {
     const preHookEvent = {
-        instance: params.current._root,
+        instance: params.current,
         method: params.type,
-        options: params.current._fullOptions,
-        path: params.current._fullPath,
+        options: params.current._resolvedOptions,
+        path: params.current._encodedPath,
         requestBody: body,
         requestQuery: query,
         uri: params.current._uri,
@@ -69,9 +92,10 @@ async function runRequest<T>(params: IEndPointParams<T>, body: unknown, query: u
     }
 
     if (rawResponse.ok) {
-        const response = await rawResponse.json();
+        const response = await preHookEvent.options.encoder.responseDecoder(rawResponse);
         const postHookEvent = {
             ...preHookEvent,
+            rawResponse: rawResponse,
             response,
         };
         await runPostHooks(params, postHookEvent);
@@ -79,7 +103,8 @@ async function runRequest<T>(params: IEndPointParams<T>, body: unknown, query: u
     } else {
         const postHookEvent = {
             ...preHookEvent,
-            response: rawResponse,
+            rawResponse: rawResponse,
+            response: null
         };
         await runPostHooks(params, postHookEvent);
         return Promise.reject(rawResponse);

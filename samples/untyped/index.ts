@@ -1,6 +1,8 @@
-import {typeRest} from "../../src";
+import {CommonEncodings, typeRest, TypeRestDefaults} from "../../dist";
+import fetch from "node-fetch";
 
 async function main() {
+    TypeRestDefaults.fetchImplementation = fetch;
     const api = typeRest("https://jsonplaceholder.typicode.com");
     api._addHook({
         type: "pre",
@@ -9,6 +11,8 @@ async function main() {
             console.log({method, path, requestBody, requestQuery});
         },
     });
+
+    api.testing._options.encoder = CommonEncodings.jsonToCsv;
 
     try {
         const todo = await api.todos[1].Get();

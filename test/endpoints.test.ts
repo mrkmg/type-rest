@@ -1,11 +1,11 @@
-import fetch = require("jest-fetch-mock");
-import {typeRest, TypeRestDefaults} from "../src";
+import fetch from "jest-fetch-mock";
+import {Index, typeRest, UntypedTypeRestApi} from "../src";
 
 describe("End Point Calls", () => {
-    const api = typeRest("https://localhost/");
+    let api: Index<UntypedTypeRestApi>;
 
     beforeAll(() => {
-        TypeRestDefaults.fetchImplementation = fetch;
+        api = typeRest("https://localhost/",{fetch});
     });
 
     beforeEach(() => {
@@ -15,67 +15,66 @@ describe("End Point Calls", () => {
 
     it("Get", async () => {
         await api.Get();
+        await api.Get({key1: "value1", key2: "value2"});
+
         expect(fetch.mock.calls[0][0]).toBe("https://localhost/");
         expect(fetch.mock.calls[0][1]).toHaveProperty("method", "GET");
-    });
-
-    it("Get with Query", async () => {
-        await api.Get({queryParam: "queryValue"});
-        expect(fetch.mock.calls[0][0]).toBe("https://localhost/?queryParam=queryValue");
-        expect(fetch.mock.calls[0][1]).toHaveProperty("method", "GET");
+        expect(fetch.mock.calls[1][0]).toBe("https://localhost/?key1=value1&key2=value2");
+        expect(fetch.mock.calls[1][1]).toHaveProperty("method", "GET");
     });
 
     it("Delete", async () => {
         await api.Delete();
+        await api.Delete({key1: "value1", key2: "value2"});
+
         expect(fetch.mock.calls[0][0]).toBe("https://localhost/");
         expect(fetch.mock.calls[0][1]).toHaveProperty("method", "DELETE");
-    });
-
-    it("Delete with Query", async () => {
-        await api.Delete({queryParam: "queryValue"});
-        expect(fetch.mock.calls[0][0]).toBe("https://localhost/?queryParam=queryValue");
-        expect(fetch.mock.calls[0][1]).toHaveProperty("method", "DELETE");
-    });
-
-    it("Post", async () => {
-        await api.Post({bodyParam: "bodyValue"});
-        expect(fetch.mock.calls[0][0]).toBe("https://localhost/");
-        expect(fetch.mock.calls[0][1]).toHaveProperty("method", "POST");
-        expect(fetch.mock.calls[0][1]).toHaveProperty("body", "{\"bodyParam\":\"bodyValue\"}");
-    });
-
-    it("Post with Query", async () => {
-        await api.Post({bodyParam: "bodyValue"}, {queryParam: "queryValue"});
-        expect(fetch.mock.calls[0][0]).toBe("https://localhost/?queryParam=queryValue");
-        expect(fetch.mock.calls[0][1]).toHaveProperty("method", "POST");
-        expect(fetch.mock.calls[0][1]).toHaveProperty("body", "{\"bodyParam\":\"bodyValue\"}");
+        expect(fetch.mock.calls[1][0]).toBe("https://localhost/?key1=value1&key2=value2");
+        expect(fetch.mock.calls[1][1]).toHaveProperty("method", "DELETE");
     });
 
     it("Patch", async () => {
-        await api.Patch({bodyParam: "bodyValue"});
+        await api.Patch();
+        await api.Patch({bodyKey1: "bodyValue1", bodyKey2: 123});
+        await api.Patch({bodyKey1: "bodyValue1", bodyKey2: 123}, {key1: "value1", key2: "value2"});
+
         expect(fetch.mock.calls[0][0]).toBe("https://localhost/");
         expect(fetch.mock.calls[0][1]).toHaveProperty("method", "PATCH");
-        expect(fetch.mock.calls[0][1]).toHaveProperty("body", "{\"bodyParam\":\"bodyValue\"}");
+        expect(fetch.mock.calls[1][0]).toBe("https://localhost/");
+        expect(fetch.mock.calls[1][1]).toHaveProperty("body", "{\"bodyKey1\":\"bodyValue1\",\"bodyKey2\":123}");
+        expect(fetch.mock.calls[1][1]).toHaveProperty("method", "PATCH");
+        expect(fetch.mock.calls[2][0]).toBe("https://localhost/?key1=value1&key2=value2");
+        expect(fetch.mock.calls[2][1]).toHaveProperty("body", "{\"bodyKey1\":\"bodyValue1\",\"bodyKey2\":123}");
+        expect(fetch.mock.calls[2][1]).toHaveProperty("method", "PATCH");
     });
 
-    it("Patch with Query", async () => {
-        await api.Patch({bodyParam: "bodyValue"}, {queryParam: "queryValue"});
-        expect(fetch.mock.calls[0][0]).toBe("https://localhost/?queryParam=queryValue");
-        expect(fetch.mock.calls[0][1]).toHaveProperty("method", "PATCH");
-        expect(fetch.mock.calls[0][1]).toHaveProperty("body", "{\"bodyParam\":\"bodyValue\"}");
+    it("Post", async () => {
+        await api.Post();
+        await api.Post({bodyKey1: "bodyValue1", bodyKey2: 123});
+        await api.Post({bodyKey1: "bodyValue1", bodyKey2: 123}, {key1: "value1", key2: "value2"});
+
+        expect(fetch.mock.calls[0][0]).toBe("https://localhost/");
+        expect(fetch.mock.calls[0][1]).toHaveProperty("method", "POST");
+        expect(fetch.mock.calls[1][0]).toBe("https://localhost/");
+        expect(fetch.mock.calls[1][1]).toHaveProperty("body", "{\"bodyKey1\":\"bodyValue1\",\"bodyKey2\":123}");
+        expect(fetch.mock.calls[1][1]).toHaveProperty("method", "POST");
+        expect(fetch.mock.calls[2][0]).toBe("https://localhost/?key1=value1&key2=value2");
+        expect(fetch.mock.calls[2][1]).toHaveProperty("body", "{\"bodyKey1\":\"bodyValue1\",\"bodyKey2\":123}");
+        expect(fetch.mock.calls[2][1]).toHaveProperty("method", "POST");
     });
 
     it("Put", async () => {
-        await api.Put({bodyParam: "bodyValue"});
+        await api.Put();
+        await api.Put({bodyKey1: "bodyValue1", bodyKey2: 123});
+        await api.Put({bodyKey1: "bodyValue1", bodyKey2: 123}, {key1: "value1", key2: "value2"});
+
         expect(fetch.mock.calls[0][0]).toBe("https://localhost/");
         expect(fetch.mock.calls[0][1]).toHaveProperty("method", "PUT");
-        expect(fetch.mock.calls[0][1]).toHaveProperty("body", "{\"bodyParam\":\"bodyValue\"}");
-    });
-
-    it("Put with Query", async () => {
-        await api.Put({bodyParam: "bodyValue"}, {queryParam: "queryValue"});
-        expect(fetch.mock.calls[0][0]).toBe("https://localhost/?queryParam=queryValue");
-        expect(fetch.mock.calls[0][1]).toHaveProperty("method", "PUT");
-        expect(fetch.mock.calls[0][1]).toHaveProperty("body", "{\"bodyParam\":\"bodyValue\"}");
+        expect(fetch.mock.calls[1][0]).toBe("https://localhost/");
+        expect(fetch.mock.calls[1][1]).toHaveProperty("body", "{\"bodyKey1\":\"bodyValue1\",\"bodyKey2\":123}");
+        expect(fetch.mock.calls[1][1]).toHaveProperty("method", "PUT");
+        expect(fetch.mock.calls[2][0]).toBe("https://localhost/?key1=value1&key2=value2");
+        expect(fetch.mock.calls[2][1]).toHaveProperty("body", "{\"bodyKey1\":\"bodyValue1\",\"bodyKey2\":123}");
+        expect(fetch.mock.calls[2][1]).toHaveProperty("method", "PUT");
     });
 });

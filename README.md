@@ -10,6 +10,7 @@ completion on their APIs inside of TypeScript projects.
 - [Examples](#examples)
 - [Description](#description)
 - [How to Use](docs/GUIDE.md)
+- [Internals](docs/INTERNALS.md)
 - [Options](docs/OPTIONS.md)
 - [License](#license)
 

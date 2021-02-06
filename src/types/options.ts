@@ -1,5 +1,4 @@
 import {IHookDefinition} from "./hooks";
-import {FetchSignature} from "../defaults";
 
 /**
  * All valid path styles
@@ -24,7 +23,7 @@ type DisallowedRequestInitKeys = "body" | "query" | "method";
 // This is a work-around for headers being a stupid type in RequestInit.
 export type ITypeRestParams = Omit<RequestInit, DisallowedRequestInitKeys> & { headers?: Record<string, string> };
 
-interface IRequestEncoder<TRequest = unknown, TResponse = unknown> {
+export interface IRequestEncoder<TRequest = unknown, TResponse = unknown> {
     requestContentType: string;
     requestAcceptType: string;
     requestEncoder: (data: TRequest) => Promise<BodyInit>;
@@ -37,7 +36,7 @@ export interface ITypeRestOptions<T> {
     pathStyle: ValidPathStyles;
     encoder: Readonly<IRequestEncoder>;
     trailingSlash: boolean;
-    fetchImplementation: FetchSignature;
+    fetch: typeof fetch;
 }
 
 export type ITypeRestOptionsInit<T> = Partial<ITypeRestOptions<T>>;

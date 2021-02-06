@@ -13,16 +13,12 @@ function checkPath(value: Index<unknown>, check: undefined | RegExp | string | (
     if (check === undefined) {
         return true;
     } else if (check instanceof RegExp) {
-        return check.test(value._fullPath);
+        return check.test(value._encodedPath);
     } else if (Array.isArray(check)) {
-        const parts = [];
-        let current = value;
-        while (current._parent) {
-            parts.unshift(current._path);
-            current = current._parent;
-        }
+        const parts = value._fullPath;
+        parts.shift(); // remove root
         return parts.length === check.length && parts.reduce((c, v, i) => c && (check[i] === null || v === check[i]), true);
-    } else return typeof check === "string" && check === value._fullPath;
+    } else return typeof check === "string" && check === value._encodedPath;
 }
 
 function getHooks<T>(type: HookType.Pre, params: IEndPointParams<T>, event: IPreHookEvent<T>): IPreHookDefinition<T>[];
@@ -30,7 +26,7 @@ function getHooks<T>(type: HookType.Post, params: IEndPointParams<T>, event: IPo
 function getHooks<T>(type: HookType,
     params: IEndPointParams<T>,
     event: IPreHookEvent<T> | IPostHookEvent<T>) {
-    return params.current._fullOptions.hooks.filter((hookDefinition: IHookDefinition<T>) => {
+    return params.current._resolvedOptions.hooks.filter((hookDefinition: IHookDefinition<T>) => {
         if (hookDefinition.type !== type) {
             return false;
         }

@@ -1,16 +1,11 @@
 import fetch from "jest-fetch-mock";
-import {typeRest, TypeRestDefaults, UntypedTypeRestApi} from "../src";
+import {Index, typeRest, UntypedTypeRestApi} from "../src";
 
 describe("End Point Calls", () => {
-    let api: UntypedTypeRestApi;
+    let api: Index<UntypedTypeRestApi>;
 
     beforeAll(() => {
-        TypeRestDefaults.fetchImplementation = fetch;
-        api = typeRest("https://localhost/");
-    });
-
-    afterAll(() => {
-        TypeRestDefaults.fetchImplementation = null;
+        api = typeRest("https://localhost/",{fetch});
     });
 
     beforeEach(() => {

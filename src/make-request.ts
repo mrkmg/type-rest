@@ -19,5 +19,5 @@ export async function makeRequest<T>(preHookEvent: IPreHookEvent<T>): Promise<Re
     // tslint:disable-next-line
     params.headers["Accept"] = preHookEvent.options.encoder.requestAcceptType;
 
-    return preHookEvent.options.fetchImplementation(url, params);
+    return preHookEvent.options.fetch(url, params);
 }

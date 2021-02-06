@@ -1,20 +1,16 @@
-export function json(response: Response): Promise<unknown> {
-    return response.json();
-}
-
-export async function csv(response: Response): Promise<string[][]> {
-    return parseCSV(await response.text());
+export function csv(text: string): string[][] {
+    return parseCSV(text);
 }
 
 // Retrieved from https://stackoverflow.com/questions/1293147/example-javascript-code-to-parse-csv-data
-function parseCSV(str) {
-    const arr = [];
+function parseCSV(str: string) {
+    const arr: string[][] = [];
     let quote = false;  // 'true' means we're inside a quoted field
 
     for (let row = 0, col = 0, c = 0; c < str.length; c++) {
         const cc = str[c], nc = str[c+1];        // Current character, next character
-        arr[row] = arr[row] || [];             // Create a new row if necessary
-        arr[row][col] = arr[row][col] || "";   // Create a new column (start with empty string) if necessary
+        arr[row] = arr[row] || [];               // Create a new row if necessary
+        arr[row][col] = arr[row][col] || "";     // Create a new column (start with empty string) if necessary
 
         // If the current character is a quotation mark, and we're inside a
         // quoted field, and the next character is also a quotation mark,

@@ -32,17 +32,15 @@ function withoutBodyFunc<T>(params: IEndPointParams<T>) {
     };
 
     func._addHook = (hook: Omit<IHookDefinition<T>, "path" | "method">) => {
-        const path = [];
-        let current = params.current;
-        while (current._parent) {
-            path.unshift(current._path);
-            current = current._parent;
-        }
-        const fullHook: IHookDefinition<T> = Object.assign({}, hook, {
-            path,
-            method: params.type
-        });
-        params.current._addHook(fullHook);
+        const path = params.current._fullPath;
+        path.shift(); // remove root
+        params.current._addHook(
+            path.length === 0 ?
+                Object.assign({}, hook) :
+                Object.assign({}, hook, {
+                    path,
+                    method: params.type
+                }));
     };
 
     return func;
@@ -58,11 +56,15 @@ function withBodyFunc<T>(params: IEndPointParams<T>) {
     };
 
     func._addHook = (hook: Omit<IHookDefinition<T>, "path" | "method">) => {
-        const fullHook: IHookDefinition<T> = Object.assign({}, hook, {
-            path: params.current._fullPath,
-            method: params.type
-        });
-        params.current._addHook(fullHook);
+        const path = params.current._fullPath;
+        path.shift(); // remove root
+        params.current._addHook(
+            path.length === 0 ?
+                Object.assign({}, hook) :
+                Object.assign({}, hook, {
+                    path,
+                    method: params.type
+                }));
     };
 
     return func;
@@ -70,10 +72,10 @@ function withBodyFunc<T>(params: IEndPointParams<T>) {
 
 async function runRequest<T>(params: IEndPointParams<T>, body: unknown, query: unknown, raw: boolean) {
     const preHookEvent = {
-        instance: params.current._root,
+        instance: params.current,
         method: params.type,
-        options: params.current._fullOptions,
-        path: params.current._fullPath,
+        options: params.current._resolvedOptions,
+        path: params.current._encodedPath,
         requestBody: body,
         requestQuery: query,
         uri: params.current._uri,

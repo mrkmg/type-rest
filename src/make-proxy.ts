@@ -1,33 +1,47 @@
 import mergeOptions = require("merge-options");
-import {IHookDefinition, Index, ITypeRestOptions, pathEncoder} from "./";
-import {IEndPointParams, makeEndpoint, ValidEndpoint} from "./make-endpoint";
+import {IHookDefinition, Index, ITypeRestOptions, pathEncoder, ValidPathStyles} from "./";
+import {makeEndpoint, ValidEndpoint} from "./make-endpoint";
 
-function getFullOptions<T>(start: Index<T>) {
-    const options = [start._options];
-    let current = start;
-    while (current._parent) {
-        current = current._parent;
-        options.unshift(current._options);
+function getIndexArray<T>(start: Index<T>, includeRoot = true) {
+    const arr = [start];
+    while (start._parent) {
+        start = start._parent;
+        arr.unshift(start);
     }
-    return mergeOptions.apply({
-        concatArrays: true,
-    }, options);
+    if (!includeRoot) arr.shift();
+    return arr;
 }
 
-function getFullPathParts<T>(start: Index<T>): string[] {
-    if (!start._parent) return [];
-    let current = start;
-    const pathParts = [];
-    do {
-        pathParts.unshift(current._path);
-        current = current._parent;
-    } while (current._parent);
-    return pathParts;
+function encodePath<T>(start: Index<T>, includeRoot = true): string {
+    if (!start._parent) {
+        return includeRoot ? start._path + "/" : "";
+    }
+
+    const indexes = getIndexArray(start, false);
+
+    const path = [];
+    let currentPath = [];
+    let currentPathStyle: ValidPathStyles = null;
+    for (const index of indexes) {
+        if (index._resolvedOptions.pathStyle !== currentPathStyle) {
+            if (currentPath.length > 0) {
+                path.push(pathEncoder(currentPath, currentPathStyle));
+            }
+            currentPath = [];
+            currentPathStyle = index._resolvedOptions.pathStyle;
+        }
+        currentPath.push(index._path);
+    }
+    if (currentPath.length > 0) {
+        path.push(pathEncoder(currentPath, currentPathStyle));
+    }
+
+    return (includeRoot ? start._root._path : "") + "/" +
+        path.join("/") +
+        (start._resolvedOptions.trailingSlash ? "/" : "");
 }
 
 function getHandler<T>(target: Index<T>, name: string, current: Index<T>) {
-    let endPointParams: IEndPointParams<T>;
-    let proxy: Index<T>;
     switch (name) {
     case "_root":
         if (current._parent) {
@@ -36,19 +50,18 @@ function getHandler<T>(target: Index<T>, name: string, current: Index<T>) {
         return current;
 
     case "_uri":
-        if (!current._parent) {
-            return current._path;
-        }
-        return `${current._root._path}${pathEncoder(getFullPathParts(current), current._fullOptions.pathStyle)}${current._fullOptions.trailingSlash ? "/" : ""}`;
+        return encodePath(current, true);
+
+    case "_encodedPath":
+        return encodePath(current, false);
 
     case "_fullPath":
-        if (!current._parent) {
-            return "/";
-        }
-        return `/${pathEncoder(getFullPathParts(current), current._fullOptions.pathStyle)}${current._fullOptions.trailingSlash ? "/" : ""}`;
+        return getIndexArray(current).map(i => i._path);
 
-    case "_fullOptions":
-        return getFullOptions(current);
+    case "_resolvedOptions":
+        return mergeOptions.apply({
+            concatArrays: true,
+        }, getIndexArray(current).map(i => i._options));
 
     case "_addHook":
         return (hook: IHookDefinition<T>) => {
@@ -60,23 +73,20 @@ function getHandler<T>(target: Index<T>, name: string, current: Index<T>) {
     case "Patch":
     case "Delete":
     case "Put":
-        endPointParams = {
+        return makeEndpoint({
             current,
             type: name.toUpperCase() as ValidEndpoint,
-        };
-        return makeEndpoint(endPointParams);
+        });
 
     default:
         if (name in target) {
             return target[name];
         }
 
-        proxy = makeProxy(current, name, {
+        return target[name] = makeProxy(current, name, {
             hooks: [],
             params: {headers: {}},
         });
-        target[name] = proxy;
-        return proxy;
 
     }
 }
@@ -84,7 +94,6 @@ function getHandler<T>(target: Index<T>, name: string, current: Index<T>) {
 const proxyHandler = {get: getHandler};
 
 export function makeProxy<T>(parent: Index<T>, path: string, options: Partial<ITypeRestOptions<T>>): Index<T> {
-    // Need to do some overrides with types as the proxy handles many of the fields
     return new Proxy({
         _options: options,
         _parent: parent,

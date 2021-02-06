@@ -1,15 +1,7 @@
 import fetch from "jest-fetch-mock";
-import {IHookDefinition, IPostHookEvent, IPreHookEvent, typeRest, TypeRestDefaults, UntypedTypeRestApi} from "../src";
+import {IHookDefinition, IPostHookEvent, IPreHookEvent, typeRest, UntypedTypeRestApi} from "../src";
 
 describe("Hooks", () => {
-    beforeAll(() => {
-        TypeRestDefaults.fetchImplementation = fetch;
-    });
-
-    afterAll(() => {
-        TypeRestDefaults.fetchImplementation = null;
-    });
-
     describe("_addHook func", () => {
         beforeEach(() => {
             fetch.resetMocks();
@@ -22,7 +14,7 @@ describe("Hooks", () => {
                 hook: () => { hookRunCount++; },
                 type: "post",
             };
-            const api = typeRest("https://localhost/");
+            const api = typeRest("https://localhost/", {fetch});
 
             await api.test.Get();
             api._addHook(hook);
@@ -37,7 +29,7 @@ describe("Hooks", () => {
                 hook: () => { hookRunCount++; },
                 type: "post",
             };
-            const api = typeRest("https://localhost/");
+            const api = typeRest("https://localhost/", {fetch});
 
             api.test1._addHook(hook);
             await api.test1.Get();
@@ -47,13 +39,12 @@ describe("Hooks", () => {
 
         it("calls hooks only on handler (query only routes)", async () => {
             let hookRunCount = 0;
-            const hook: IHookDefinition = {
+            const api = typeRest("https://localhost/", {fetch});
+
+            api.test1.Get._addHook({
                 hook: () => { hookRunCount++; },
                 type: "post",
-            };
-            const api = typeRest("https://localhost/");
-
-            api.test1.Get._addHook(hook);
+            });
             await api.test1.Get();
             await api.test1.Delete();
             expect(hookRunCount).toEqual(1);
@@ -65,7 +56,7 @@ describe("Hooks", () => {
                 hook: () => { hookRunCount++; },
                 type: "post",
             };
-            const api = typeRest("https://localhost/");
+            const api = typeRest("https://localhost/", {fetch});
 
             api.test1.Post._addHook(hook);
             await api.test1.Post({});
@@ -88,7 +79,7 @@ describe("Hooks", () => {
                 type: "post",
             };
 
-            const api = typeRest("https://localhost/", {hooks: [hook]});
+            const api = typeRest("https://localhost/", {fetch, hooks: [hook]});
 
             await api.test.Get().catch(() => { didReject = true; });
             expect(didRunHook).toEqual(true);
@@ -109,7 +100,7 @@ describe("Hooks", () => {
                 type: "post",
             };
 
-            const api = typeRest("https://localhost/", {hooks: [hook]});
+            const api = typeRest("https://localhost/", {fetch, hooks: [hook]});
 
             await api.test.Get();
             expect(didRunHook).toEqual(true);
@@ -123,7 +114,7 @@ describe("Hooks", () => {
                 type: "post",
             };
 
-            const api = typeRest("https://localhost/", {hooks: [hook]});
+            const api = typeRest("https://localhost/", {fetch, hooks: [hook]});
 
             await api.test.Get();
             expect(didRunHook).toEqual(true);
@@ -137,7 +128,7 @@ describe("Hooks", () => {
                 type: "post",
             };
 
-            const api = typeRest("https://localhost/", {hooks: [hook]});
+            const api = typeRest("https://localhost/", {fetch, hooks: [hook]});
 
             await api.test.Get();
             expect(didRunHook).toEqual(false);
@@ -151,7 +142,7 @@ describe("Hooks", () => {
                 type: "post",
             };
 
-            const api = typeRest("https://localhost/", {hooks: [hook]});
+            const api = typeRest("https://localhost/", {fetch, hooks: [hook]});
 
             await api.test.Get();
             expect(didRunHook).toEqual(true);
@@ -165,7 +156,7 @@ describe("Hooks", () => {
                 type: "post",
             };
 
-            const api = typeRest("https://localhost/", {hooks: [hook]});
+            const api = typeRest("https://localhost/", {fetch, hooks: [hook]});
 
             await api.test.Get();
             expect(didRunHook).toEqual(false);
@@ -178,7 +169,7 @@ describe("Hooks", () => {
                 type: "post",
             };
 
-            const api = typeRest("https://localhost/", {hooks: [hook]});
+            const api = typeRest("https://localhost/", {fetch, hooks: [hook]});
 
             await api.test.Post({b: 2}, {a: 1});
 
@@ -193,12 +184,12 @@ describe("Hooks", () => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const hook: IHookDefinition<UntypedTypeRestApi, unknown, unknown, any> = {
                 hook: (ev) => {
-                    ev.instance._options.params.headers.auth = ev.response.responseParam1;
+                    ev.instance._root._options.params.headers.auth = ev.response.responseParam1;
                 },
                 type: "post",
             };
 
-            const api = typeRest("https://localhost/", {hooks: [hook]});
+            const api = typeRest("https://localhost/", {fetch, hooks: [hook]});
 
             await api.test.Get();
 
@@ -232,7 +223,7 @@ describe("Hooks", () => {
                 type: "post",
             };
 
-            const api = typeRest("https://localhost/", {hooks: [hook1, hook2, hook3, hook4]});
+            const api = typeRest("https://localhost/", {fetch, hooks: [hook1, hook2, hook3, hook4]});
 
             await api.test.Get();
             expect(didRunHook1).toEqual(true);
@@ -255,7 +246,7 @@ describe("Hooks", () => {
                 type: "post",
             };
 
-            const api = typeRest("https://localhost/");
+            const api = typeRest("https://localhost/", {fetch});
 
             api.hookOne._options.hooks.push(hookOneDefinition);
             api.hookTwo._options.hooks.push(hookTwoDefinition);
@@ -273,7 +264,7 @@ describe("Hooks", () => {
                 hook: () => Promise.reject("Failed"),
                 type: "post",
             };
-            const api = typeRest("https://localhost/", {hooks: [hook]});
+            const api = typeRest("https://localhost/", {fetch, hooks: [hook]});
 
             await expect(api.test.Get()).rejects.toEqual("Failed");
         });
@@ -292,7 +283,7 @@ describe("Hooks", () => {
                 type: "pre",
             };
 
-            const api = typeRest("https://localhost/", {hooks: [hook]});
+            const api = typeRest("https://localhost/", {fetch, hooks: [hook]});
 
             await api.test.Get();
             expect(didRunHook).toEqual(true);
@@ -306,7 +297,7 @@ describe("Hooks", () => {
                 type: "pre",
             };
 
-            const api = typeRest("https://localhost/", {hooks: [hook]});
+            const api = typeRest("https://localhost/", {fetch, hooks: [hook]});
 
             await api.test.Get();
             expect(didRunHook).toEqual(true);
@@ -320,7 +311,7 @@ describe("Hooks", () => {
                 type: "pre",
             };
 
-            const api = typeRest("https://localhost/", {hooks: [hook]});
+            const api = typeRest("https://localhost/", {fetch, hooks: [hook]});
 
             await api.test.Get();
             expect(didRunHook).toEqual(false);
@@ -334,7 +325,7 @@ describe("Hooks", () => {
                 type: "pre",
             };
 
-            const api = typeRest("https://localhost/", {hooks: [hook]});
+            const api = typeRest("https://localhost/", {fetch, hooks: [hook]});
 
             await api.test.Get();
             expect(didRunHook).toEqual(true);
@@ -348,7 +339,7 @@ describe("Hooks", () => {
                 type: "pre",
             };
 
-            const api = typeRest("https://localhost/", {hooks: [hook]});
+            const api = typeRest("https://localhost/", {fetch, hooks: [hook]});
 
             await api.test.Get();
             expect(didRunHook).toEqual(false);
@@ -361,7 +352,7 @@ describe("Hooks", () => {
                 type: "pre",
             };
 
-            const api = typeRest("https://localhost/", {hooks: [hook]});
+            const api = typeRest("https://localhost/", {fetch, hooks: [hook]});
 
             await api.test.Post({b: 2}, {a: 1});
 
@@ -380,7 +371,7 @@ describe("Hooks", () => {
                 method: "POST",
             };
 
-            const api = typeRest("https://localhost/", {hooks: [hook]});
+            const api = typeRest("https://localhost/", {fetch, hooks: [hook]});
 
             await api.test.Post();
 
@@ -414,7 +405,7 @@ describe("Hooks", () => {
                 type: "post",
             };
 
-            const api = typeRest("https://localhost/", {hooks: [hook1, hook2, hook3, hook4]});
+            const api = typeRest("https://localhost/", {fetch, hooks: [hook1, hook2, hook3, hook4]});
 
             await api.test.Get();
             expect(didRunHook1).toEqual(true);
@@ -437,7 +428,7 @@ describe("Hooks", () => {
                 type: "post",
             };
 
-            const api = typeRest("https://localhost/");
+            const api = typeRest("https://localhost/", {fetch});
 
             api.hookOne._options.hooks.push(hookOneDefinition);
             api.hookTwo._options.hooks.push(hookTwoDefinition);
@@ -455,7 +446,7 @@ describe("Hooks", () => {
                 hook: () => Promise.reject("Failed"),
                 type: "post",
             };
-            const api = typeRest("https://localhost/", {hooks: [hook]});
+            const api = typeRest("https://localhost/", {fetch, hooks: [hook]});
 
             await expect(api.test.Get()).rejects.toEqual("Failed");
         });
@@ -475,7 +466,7 @@ describe("Hooks", () => {
                 type: "pre",
             };
 
-            const api = typeRest("https://localhost/", {hooks: [hook]});
+            const api = typeRest("https://localhost/", {fetch, hooks: [hook]});
 
             await api.first[1].second.Get();
             await api.first[2].second.Get();
@@ -490,7 +481,7 @@ describe("Hooks", () => {
                 type: "pre",
             };
 
-            const api = typeRest("https://localhost/", {hooks: [hook]});
+            const api = typeRest("https://localhost/", {fetch, hooks: [hook]});
 
             await api.first[1].second.Get();
             await api.first[2].second.Get();
@@ -506,7 +497,7 @@ describe("Hooks", () => {
                 type: "pre",
             };
 
-            const api = typeRest("https://localhost/", {hooks: [hook]});
+            const api = typeRest("https://localhost/", {fetch, hooks: [hook]});
 
             await api.first[1].second.Get();
             await api.first[2].second.Get();
@@ -524,7 +515,7 @@ describe("Hooks", () => {
                 type: "pre",
             };
 
-            const api = typeRest("https://localhost/", {hooks: [hook]});
+            const api = typeRest("https://localhost/", {fetch, hooks: [hook]});
 
             await api.Get();
             await api.Post();
@@ -539,7 +530,7 @@ describe("Hooks", () => {
                 type: "pre",
             };
 
-            const api = typeRest("https://localhost/", {hooks: [hook]});
+            const api = typeRest("https://localhost/", {fetch, hooks: [hook]});
 
             await api.Get();
             await api.Post();

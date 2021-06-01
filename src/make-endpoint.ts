@@ -75,13 +75,13 @@ async function runRequest<T>(params: IEndPointParams<T>, body: unknown, query: u
             response,
         };
         await runPostHooks(params, postHookEvent);
-        return response;
+        return postHookEvent.response;
     } else {
         const postHookEvent = {
             ...preHookEvent,
             response: rawResponse,
         };
         await runPostHooks(params, postHookEvent);
-        return Promise.reject(rawResponse);
+        return Promise.reject(postHookEvent.response);
     }
 }

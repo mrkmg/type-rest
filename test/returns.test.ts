@@ -1,4 +1,4 @@
-import fetch = require("jest-fetch-mock");
+import fetch from "jest-fetch-mock";
 import {typeRest, TypeRestDefaults} from "../src";
 
 describe("Returns", () => {
@@ -29,8 +29,8 @@ describe("Returns", () => {
         const api = typeRest("https://localhost/");
         const result1 = await api.Get.raw();
         const result2 = await api.Post.raw({bodyParam: "bodyValue"});
-        expect(result1).toHaveProperty("body", "abc-123");
-        expect(result2).toHaveProperty("body", "abc-123");
+        expect(result1).toHaveProperty("body", Buffer.from("abc-123"));
+        expect(result2).toHaveProperty("body", Buffer.from("abc-123"));
     });
 
     it("raw response, 500", async () => {

@@ -1,4 +1,4 @@
-import fetch = require("jest-fetch-mock");
+import fetch from "jest-fetch-mock";
 import {IHookDefinition, IPostHookEvent, IPreHookEvent, typeRest, TypeRestDefaults, UntypedTypeRestApi} from "../src";
 
 describe("Hooks - _addHook func", () => {
@@ -348,7 +348,7 @@ describe("Hooks - Pre", () => {
 
         const api = typeRest("https://localhost/", {hooks: [hook]});
 
-        await api.test.Get();
+        await api.test.Post({});
 
         expect(fetch.mock.calls[0][1]).toHaveProperty("body", "{\"test\":\"test\"}");
     });

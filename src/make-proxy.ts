@@ -69,7 +69,7 @@ export function makeProxy<T>(parent: Index<T>, path: string, options: ITypeRestO
         } as ITypeRestOptions<T>,
         _parent: parent,
         _path: path,
-    } as unknown as Index<T>, proxyHandler) as Index<T>;
+    } as Partial<Index<T>>, proxyHandler) as Index<T>;
 }
 
 function formatPath(path: string) {

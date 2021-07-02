@@ -46,9 +46,11 @@ function getDefaultFetch(): FetchSignature {
     }
 }
 
-export const TypeRestDefaults: {
+export interface TypeRestDefaults {
     fetchImplementation: FetchSignature
-} = {
+}
+
+export const TypeRestDefaults: TypeRestDefaults = {
     fetchImplementation: getDefaultFetch()
 };
 
